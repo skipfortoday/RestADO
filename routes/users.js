@@ -1,4 +1,3 @@
-const { response } = require('express');
 var express = require('express');
 var router = express.Router();
 const util = require('util');
@@ -7,7 +6,7 @@ const conn = require('../app');
 
 async function descrypt(evoucher) {
   return await new Promise((resolve,reject) => {
-    exec('"Project1.exe" '+ evoucher, (err, stdout, stderr) => {  
+    exec('"Project1.exe" '+ evoucher, (err, stdout) => {  
       if (err) {  
          reject(err)
       }  
@@ -24,7 +23,7 @@ async function savedatalokal () {
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
     try {
-      const users = await conn.query('SELECT TOP 1000 * FROM tEVoucherPerincian');
+      const users = await conn.query('SELECT TOP 10 * FROM tEVoucherPerincian');
 
       let tampung = '';
 
@@ -34,10 +33,8 @@ router.get('/', async function(req, res, next) {
         })
       }))
       res.send(tampung)
-      console.log(tampung)
       
-  
-      
+
 
     //  descrypt(users[0].EVoucher).then((response) => {
     //    res.send(response)

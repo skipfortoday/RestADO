@@ -1,6 +1,4 @@
-FROM node:lastest
-
-RUN apk update && apk add ca-certificates && update-ca-certificates
+FROM node:latest
 
 RUN mkdir /app
 ADD . /app
