@@ -1,14 +1,11 @@
 var createError = require('http-errors');
 var express = require('express');
-const axios = require('axios');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const ADODB = require('node-adodb');
 const conn = ADODB.open('Provider=SQLOLEDB.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=TCardOnline_SB02_Test;Data Source=192.168.0.1;');
 module.exports = conn;
-
-
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
