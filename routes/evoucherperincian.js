@@ -1,8 +1,8 @@
-var express = require("express");
+const express = require("express");
 const axios = require("axios");
 const moment = require("moment");
 const conn = require("../app");
-var router = express.Router();
+const router = express.Router();
 
 router.get("/", async function (req, res, next) {
   try {
@@ -11,7 +11,7 @@ router.get("/", async function (req, res, next) {
     WaktuTerakhirSync = lastsync.data.data.time;
     let TglSekarang = moment.parseZone(moment()).format("YYYY-MM-DD");
     let WaktuSekarang = moment.parseZone(moment()).format("HH:mm:ss");
-    const querydata = await conn.query(`SELECT TOP 1 RecordNum,
+    const querydata = await conn.query(`SELECT RecordNum,
                                         CONVERT(date, Tanggal) as Tgldate,
                                         CONVERT(time, Tanggal) as Tgltime,
                                         NoBukti,Keterangan,AmountD,AmountK,
@@ -19,12 +19,11 @@ router.get("/", async function (req, res, next) {
                                         CONVERT(date, TglInput) as TglInputdate,
                                         CONVERT(time, TglInput) as TglInputtime,
                                         Ubah,Hapus,Pelanggan,Lokasi,EVoucher,
-                                        Flag,Koreksi,time,date
+                                        Koreksi,time,date
                                         FROM tEVoucherPerincian
                                         WHERE date BETWEEN '${TglTerakhirSync}' AND '${TglSekarang}' 
                                         AND time BETWEEN '${WaktuTerakhirSync}' AND '${WaktuSekarang}'
                                       `);
-                                      console.log(querydata)
   let dataTcard = '';
   querydata.forEach(items => {
     dataTcard += 
@@ -36,21 +35,19 @@ router.get("/", async function (req, res, next) {
         '"'+ items.AmountD +'", '+
         '"'+ items.AmountK +'", '+
         '"'+ items.SaldoAwal +'", '+
+        '"'+ items.SaldoAkhir +'", '+
         '"'+ items.IndexNum +'", '+
         '"'+ items.UserID +'", '+
         '"'+ items.TglInputdate + ' ' + items.TglInputtime +'", '+
-        '"'+ items.Ubah +'", '+
-        '"'+ items.Hapus +'", '+
+        '"'+ items.Ubah * 1 +'", '+
+        '"'+ items.Hapus * 1 +'", '+
         '"'+ items.Pelanggan +'", '+
         '"'+ items.Lokasi +'", '+
         '"'+ items.EVoucher +'", '+
-        '"'+ items.Flag +'", '+
+        '"'+ items.Lokasi + '/' + items.RecordNum +'", '+
         '"'+ items.Koreksi +'"'+'),';
   });
-
-  
   dataTcard = dataTcard.substring(0,dataTcard.trim().length-1);
-  console.log(dataTcard)
     await axios.post("http://localhost:3003/evoucherperincian", {data : dataTcard})
       .then(function (response) {
         res.send(response.data);
