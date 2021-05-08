@@ -16,6 +16,7 @@ router.get("/", async function (req, res, next) {
   try {
     const lastsync = await axios.get("http://localhost:3003/evoucherperincian");
     WaktuTerakhirSync = lastsync.data.data;
+    console.log(WaktuTerakhirSync)
     const querydata = await conn.query  (`
                                         SELECT TOP 100 RecordNum,
                                         CONVERT(date, Tanggal) as Tgldate,
@@ -24,10 +25,11 @@ router.get("/", async function (req, res, next) {
                                         SaldoAwal,SaldoAkhir,IndexNum,UserID,
                                         CONVERT(date, TglInput) as TglInputdate,
                                         CONVERT(time, TglInput) as TglInputtime,
-                                        Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi
+                                        Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi,
+                                        CONVERT(date, CreateAt) as CreateAtdate,
+                                        CONVERT(time, CreateAt) as CreateAttime
                                         FROM tEVoucherPerincian
                                         WHERE CreateAt >= '${WaktuTerakhirSync}' 
-                                        ORDER BY CreateAT ASC 
                                       `);                                  
   let dataTcard = '';
   querydata.forEach(items => {
@@ -50,7 +52,8 @@ router.get("/", async function (req, res, next) {
         '"'+ items.Lokasi +'", '+
         '"'+ items.EVoucher +'", '+
         '"'+ items.Lokasi + '/' + items.RecordNum +'", '+
-        '"'+ items.Koreksi +'"'+'),';
+        '"'+ items.Koreksi +'", '+
+        '"'+ items.CreateAtdate + ' ' + items.CreateAttime +'"'+'),';
   });
   dataTcard = dataTcard.substring(0,dataTcard.trim().length-1);
     await axios.post("http://localhost:3003/evoucherperincian", {data : dataTcard})
