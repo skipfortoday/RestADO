@@ -15,11 +15,9 @@ setInterval(function(){ axios.get('http://localhost:3000/evoucherperincian')
 router.get("/", async function (req, res, next) {
   try {
     const lastsync = await axios.get("http://localhost:3003/evoucherperincian");
-    TglTerakhirSync = lastsync.data.data.date;
-    WaktuTerakhirSync = lastsync.data.data.time;
-    let TglSekarang = moment.parseZone(moment()).format("YYYY-MM-DD");
-    let WaktuSekarang = moment.parseZone(moment()).format("HH:mm:ss");
-    const querydata = await conn.query  (`SELECT TOP 300 RecordNum,
+    WaktuTerakhirSync = lastsync.data.data;
+    const querydata = await conn.query  (`
+                                        SELECT TOP 100 RecordNum,
                                         CONVERT(date, Tanggal) as Tgldate,
                                         CONVERT(time, Tanggal) as Tgltime,
                                         NoBukti,Keterangan,AmountD,AmountK,
@@ -28,8 +26,8 @@ router.get("/", async function (req, res, next) {
                                         CONVERT(time, TglInput) as TglInputtime,
                                         Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi
                                         FROM tEVoucherPerincian
-                                        WHERE CreateAt BETWEEN '${TglTerakhirSync}${' '}${WaktuTerakhirSync}' 
-                                        AND '${TglSekarang}${' '}${WaktuSekarang}'
+                                        WHERE CreateAt >= '${WaktuTerakhirSync}' 
+                                        ORDER BY CreateAT ASC 
                                       `);                                  
   let dataTcard = '';
   querydata.forEach(items => {
