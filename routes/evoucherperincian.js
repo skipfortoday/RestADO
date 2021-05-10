@@ -4,33 +4,39 @@ const moment = require("moment");
 const conn = require("../app");
 const router = express.Router();
 
-setInterval(function(){ axios.get('http://localhost:3000/evoucherperincian')
-.then(function (response) {
-  console.log(response.data);
-})
-.catch(function (error) {
-  console.log('err');
-}); }, 3000);
+// setInterval(function(){ axios.get('http://localhost:3000/evoucherperincian')
+// .then(function (response) {
+//   console.log(response.data);
+// })
+// .catch(function (error) {
+//   console.log('err');
+// }); }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
     const lastsync = await axios.get("http://localhost:3003/evoucherperincian");
     WaktuTerakhirSync = lastsync.data.data;
     console.log(WaktuTerakhirSync)
-    const querydata = await conn.query  (`
-                                        SELECT TOP 100 RecordNum,
-                                        CONVERT(date, Tanggal) as Tgldate,
-                                        CONVERT(time, Tanggal) as Tgltime,
-                                        NoBukti,Keterangan,AmountD,AmountK,
-                                        SaldoAwal,SaldoAkhir,IndexNum,UserID,
-                                        CONVERT(date, TglInput) as TglInputdate,
-                                        CONVERT(time, TglInput) as TglInputtime,
-                                        Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi,
-                                        CONVERT(date, CreateAt) as CreateAtdate,
-                                        CONVERT(time, CreateAt) as CreateAttime
-                                        FROM tEVoucherPerincian
-                                        WHERE CreateAt >= '${WaktuTerakhirSync}' 
-                                      `);                                  
+
+    let q = (`
+    SELECT TOP 100 RecordNum,
+    CONVERT(date, Tanggal) as Tgldate,
+    CONVERT(time, Tanggal) as Tgltime,
+    NoBukti,Keterangan,AmountD,AmountK,
+    SaldoAwal,SaldoAkhir,IndexNum,UserID,
+    CONVERT(date, TglInput) as TglInputdate,
+    CONVERT(time, TglInput) as TglInputtime,
+    Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi,
+    CONVERT(date, CreateAt) as CreateAtdate,
+    CONVERT(time, CreateAt) as CreateAttime
+    FROM tEVoucherPerincian
+    WHERE CONVERT(datetime, CreateAt) > '${WaktuTerakhirSync}.59' 
+  `);
+
+    const querydata = await conn.query (q); 
+    console.log(q)
+    console.log(querydata)   
+                                                             
   let dataTcard = '';
   querydata.forEach(items => {
     dataTcard += 
