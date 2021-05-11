@@ -4,20 +4,18 @@ const moment = require("moment");
 const conn = require("../app");
 const router = express.Router();
 
-// setInterval(function(){ axios.get('http://localhost:3000/evoucherperincian')
-// .then(function (response) {
-//   console.log(response.data);
-// })
-// .catch(function (error) {
-//   console.log('err');
-// }); }, 3000);
+setInterval(function(){ axios.get('http://localhost:3000/evoucherperincian')
+.then(function (response) {
+  console.log(response.data);
+})
+.catch(function (error) {
+  console.log('err');
+}); }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
     const lastsync = await axios.get("http://localhost:3003/evoucherperincian");
     WaktuTerakhirSync = lastsync.data.data;
-    console.log(WaktuTerakhirSync)
-
     let q = (`
     SELECT TOP 100 RecordNum,
     CONVERT(date, Tanggal) as Tgldate,
@@ -32,11 +30,7 @@ router.get("/", async function (req, res, next) {
     FROM tEVoucherPerincian
     WHERE CONVERT(datetime, CreateAt) > '${WaktuTerakhirSync}.59' 
   `);
-
-    const querydata = await conn.query (q); 
-    console.log(q)
-    console.log(querydata)   
-                                                             
+    const querydata = await conn.query (q);                                                    
   let dataTcard = '';
   querydata.forEach(items => {
     dataTcard += 
@@ -71,6 +65,30 @@ router.get("/", async function (req, res, next) {
       });
   } catch (error) {
     console.error(error);
+  }
+});
+
+router.get("/data", async function (req, res, next) {
+  try {
+    let querydata = await conn.query(
+      `SELECT RecordNum,Flag,Lokasi,
+      CONVERT(varchar, CreateAt,120) as Time
+      from tevoucherperincian
+      ORDER BY CreateAt DESC`,
+    );
+        res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Mendapatkan Data",
+        data: querydata,
+      });
+  } catch (error) {
+     res.json({
+            success: false,
+            status: 500,
+            message: error,
+            data: false,
+    });
   }
 });
 
