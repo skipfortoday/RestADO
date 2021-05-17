@@ -30,8 +30,9 @@ router.get("/", async function (req, res, next) {
     FROM tEVoucherPerincian
     WHERE CONVERT(datetime, CreateAt) > '${WaktuTerakhirSync}.59' 
   `);
-    const querydata = await conn.query (q);                                                    
-  let dataTcard = '';
+  const querydata = await conn.query (q);
+  if (querydata[0]){
+    let dataTcard = '';
   querydata.forEach(items => {
     dataTcard += 
     '('+
@@ -63,6 +64,14 @@ router.get("/", async function (req, res, next) {
       .catch(function (error) {
         res.send(error);
       });
+  } else {
+    res.json({
+      success: false,
+      status: 204,
+      message: "Belum ada data untuk sinkron",
+      data: false,
+    });
+  }
   } catch (error) {
     console.error(error);
   }
