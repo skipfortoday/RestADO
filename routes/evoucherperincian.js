@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const moment = require("moment");
-const conn = require("../app");
+const sqltcard = require("../sqltcard");
 const router = express.Router();
 
 setInterval(function () {
@@ -33,7 +33,7 @@ router.get("/", async function (req, res, next) {
     FROM tEVoucherPerincian
     WHERE CONVERT(datetime, CreateAt) > '${WaktuTerakhirSync}.59' 
   `;
-    const querydata = await conn.query(q);
+    const querydata = await sqltcard.query(q);
     if (querydata[0]) {
       let dataTcard = "";
       querydata.forEach((items) => {
@@ -131,7 +131,7 @@ router.get("/", async function (req, res, next) {
 
 router.get("/data", async function (req, res, next) {
   try {
-    let querydata = await conn.query(
+    let querydata = await sqltcard.query(
       `SELECT RecordNum,Flag,Lokasi,
       CONVERT(varchar, CreateAt,120) as Time
       from tevoucherperincian
@@ -155,7 +155,7 @@ router.get("/data", async function (req, res, next) {
 
 router.post("/data", async function (req, res, next) {
   try {
-    let querydata = await conn.query(
+    let querydata = await sqltcard.query(
       `INSERT INTO tevoucherperincian (
         RecordNum,Tanggal,NoBukti,Keterangan,AmountD,AmountK,
         SaldoAwal,SaldoAkhir,IndexNum,UserID,TglInput,Ubah,
