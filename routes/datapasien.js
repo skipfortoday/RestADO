@@ -1,115 +1,219 @@
 const express = require("express");
 const axios = require("axios");
 const moment = require("moment");
-const sqltcard = require("../sqltcard");
+const sqlkp = require("../sqlkartupasien");
 const router = express.Router();
 
 // setInterval(function () {
 //   axios
-//     .get("http://localhost:3000/evoucherperincian")
+//     .get("http://localhost:4000/datapasien")
 //     .then(function (response) {
 //       console.log(response.data);
 //     })
 //     .catch(function (error) {
-//       console.log("err");
+//       console.log(error);
 //     });
 // }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
-    const lastsync = await axios.get("http://localhost:3003/evoucherperincian");
+    const lastsync = await axios.get(
+      "http://localhost:3000/api/kartu-pasien/data-pasien/waktu/"
+    );
+
     WaktuTerakhirSync = lastsync.data.data;
+    console.log(WaktuTerakhirSync);
     let q = `
-    SELECT TOP 100 RecordNum,
-    CONVERT(date, Tanggal) as Tgldate,
-    CONVERT(time, Tanggal) as Tgltime,
-    NoBukti,Keterangan,AmountD,AmountK,
-    SaldoAwal,SaldoAkhir,IndexNum,UserID,
-    CONVERT(date, TglInput) as TglInputdate,
-    CONVERT(time, TglInput) as TglInputtime,
-    Ubah,Hapus,Pelanggan,Lokasi,EVoucher,Koreksi,
-    CONVERT(date, CreateAt) as CreateAtdate,
-    CONVERT(time, CreateAt) as CreateAttime
-    FROM tEVoucherPerincian
-    WHERE CONVERT(datetime, CreateAt) > '${WaktuTerakhirSync}.59' 
+    SELECT TOP 1 
+    NKP,
+    NoAuto,
+    TglAwalDaftar,
+    Nama,
+    Alamat,
+    TelpRumah,
+    HP,
+    Fax,
+    TglLahir,
+    NoDist,
+    NoSponsor,
+    Status,
+    Keterangan,
+    TglActivitas,
+    JamActivitas,
+    UserEntry,
+    LoginComp,
+    CompName,
+    PasienLama,
+    Sponsor,
+    Exported,
+    LastCallDateUltah,
+    tempCallPasien,
+    tempCallDate,
+    tempCallTime,
+    tempCallKet,
+    tempNoAutoHistoryCallPasienUltah,
+    IDSponsor,
+    LokasiFoto,
+    NoKTP,
+    NamaKTP,
+    TempatLahir,
+    AlamatKTP,
+    TelpKTP,
+    Kota,
+    KotaKTP,
+    KotaSMS,
+    StatusLtPack,
+    NoDistLtPack,
+    IDSponsorLtPack,
+    PinBB,
+    StatusDiskonPasien,
+    CONVERT(date, TglAuto) as dateTglAuto,
+    CONVERT(time, TglAuto) as timeTglAuto
+    FROM tblDataPasien
+    WHERE TglAuto > '${WaktuTerakhirSync}.59' 
   `;
-    const querydata = await sqltcard.query(q);
+    const querydata = await sqlkp.query(q);
     if (querydata[0]) {
       let dataTcard = "";
       querydata.forEach((items) => {
         dataTcard +=
           "(" +
           '"' +
-          items.RecordNum +
+          items.NKP +
           '", ' +
           '"' +
-          items.Tgldate +
-          " " +
-          items.Tgltime +
+          items.NoAuto +
           '", ' +
           '"' +
-          items.NoBukti +
+          items.TglAwalDaftar +
+          '", ' +
+          '"' +
+          items.Nama +
+          '", ' +
+          '"' +
+          items.Alamat +
+          '", ' +
+          '"' +
+          items.TelpRumah +
+          '", ' +
+          '"' +
+          items.HP +
+          '", ' +
+          '"' +
+          items.Fax +
+          '", ' +
+          '"' +
+          items.TglLahir +
+          '", ' +
+          '"' +
+          items.NoDist +
+          '", ' +
+          '"' +
+          items.NoSponsor +
+          '", ' +
+          '"' +
+          items.Status +
           '", ' +
           '"' +
           items.Keterangan +
           '", ' +
           '"' +
-          items.AmountD +
+          items.TglActivitas +
           '", ' +
           '"' +
-          items.AmountK +
+          items.JamActivitas +
           '", ' +
           '"' +
-          items.SaldoAwal +
+          items.UserEntry +
           '", ' +
           '"' +
-          items.SaldoAkhir +
+          items.LoginComp +
           '", ' +
           '"' +
-          items.IndexNum +
+          items.CompName +
           '", ' +
           '"' +
-          items.UserID +
+          items.PasienLama +
           '", ' +
           '"' +
-          items.TglInputdate +
+          items.Sponsor +
+          '", ' +
+          '"' +
+          items.Exported +
+          '", ' +
+          '"' +
+          items.LastCallDateUltah +
+          '", ' +
+          '"' +
+          items.tempCallPasien +
+          '", ' +
+          '"' +
+          items.tempCallDate +
+          '", ' +
+          '"' +
+          items.tempCallTime +
+          '", ' +
+          '"' +
+          items.tempCallKet +
+          '", ' +
+          '"' +
+          items.tempNoAutoHistoryCallPasienUltah +
+          '", ' +
+          '"' +
+          items.IDSponsor +
+          '", ' +
+          '"' +
+          items.LokasiFoto +
+          '", ' +
+          '"' +
+          items.NoKTP +
+          '", ' +
+          '"' +
+          items.NamaKTP +
+          '", ' +
+          '"' +
+          items.TempatLahir +
+          '", ' +
+          '"' +
+          items.AlamatKTP +
+          '", ' +
+          '"' +
+          items.TelpKTP +
+          '", ' +
+          '"' +
+          items.Kota +
+          '", ' +
+          '"' +
+          items.KotaKTP +
+          '", ' +
+          '"' +
+          items.KotaSMS +
+          '", ' +
+          '"' +
+          items.StatusLtPack +
+          '", ' +
+          '"' +
+          items.IDSponsorLtPack +
+          '", ' +
+          '"' +
+          items.PinBB +
+          '", ' +
+          '"' +
+          items.StatusDiskonPasien +
+          '", ' +
+          '"' +
+          items.dateTglAuto +
           " " +
-          items.TglInputtime +
-          '", ' +
-          '"' +
-          items.Ubah * 1 +
-          '", ' +
-          '"' +
-          items.Hapus * 1 +
-          '", ' +
-          '"' +
-          items.Pelanggan +
-          '", ' +
-          '"' +
-          items.Lokasi +
-          '", ' +
-          '"' +
-          items.EVoucher +
-          '", ' +
-          '"' +
-          items.Lokasi +
-          "/" +
-          items.RecordNum +
-          '", ' +
-          '"' +
-          items.Koreksi +
-          '", ' +
-          '"' +
-          items.CreateAtdate +
-          " " +
-          items.CreateAttime +
+          items.timeTglAuto +
           '"' +
           "),";
       });
       dataTcard = dataTcard.substring(0, dataTcard.trim().length - 1);
       console.log(dataTcard);
       await axios
-        .post("http://localhost:3003/evoucherperincian", { data: dataTcard })
+        .post("http://localhost:3000/api/kartu-pasien/data-pasien/data/", {
+          data: dataTcard,
+        })
         .then(function (response) {
           res.send(response.data);
         })
@@ -131,7 +235,7 @@ router.get("/", async function (req, res, next) {
 
 router.get("/data", async function (req, res, next) {
   try {
-    let querydata = await sqltcard.query(
+    let querydata = await sqlkp.query(
       `SELECT RecordNum,Flag,Lokasi,
       CONVERT(varchar, CreateAt,120) as Time
       from tevoucherperincian
