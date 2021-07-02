@@ -6,7 +6,7 @@ const router = express.Router();
 
 setInterval(function () {
   axios
-    .get("http://localhost:4000/kartu-pasien/dokter")
+    .get("http://localhost:4000/kartu-pasien/ba")
     .then(function (response) {
       console.log(response.data);
     })
@@ -19,19 +19,19 @@ router.get("/", async function (req, res, next) {
   try {
     let q = `
     SELECT TOP 100 
-    IDDOkter,NamaDokter,Status,Exported,
+    IDBA,NamaBA,Status,Exported,
     CONVERT(date, TglAuto) as dateTglAuto,
     CONVERT(time, TglAuto) as timeTglAuto
-    FROM tblDokter
+    FROM tblBA
     WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblDokter');
+    FROM timeAnchor Where tablekey='tblBA');
   `;
     const querydata = await sqlkp.query(q);
     if (querydata[0]) {
       let dataTcard = "";
       querydata.forEach((items) => {
         dataTcard += `(
-          '${items.IDDOkter}','${items.NamaDokter}','${items.Status}',
+          '${items.IDBA}','${items.NamaBA}','${items.Status}',
           '${items.Exported}',
           '${items.dateTglAuto} ${items.timeTglAuto.substring(
           0,
@@ -41,24 +41,21 @@ router.get("/", async function (req, res, next) {
       dataTcard = dataTcard.substring(0, dataTcard.trim().length - 1);
       console.log(dataTcard);
       await axios
-        .post("http://localhost:3000/api/kartu-pasien/dokter/data/", {
+        .post("http://localhost:3000/api/kartu-pasien/ba/data/", {
           data: dataTcard,
         })
         .then(async function (response) {
           try {
             const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/dokter/waktu"
+              "http://localhost:3000/api/kartu-pasien/ba/waktu"
             );
             WaktuTerakhirSync = lastsync.data.data;
-            console.log(`UPDATE "timeAnchor" set
-            "time" = '${WaktuTerakhirSync}' 
-            WHERE tablekey='tblDokter'`);
             let querydata = await sqlkp.execute(
               `UPDATE "timeAnchor" set
               "time" = '${WaktuTerakhirSync}' 
-              WHERE tablekey='tblDokter';`
+              WHERE tablekey='tblBA';`
             );
-            res.send(querydata);
+            res.json(querydata);
           } catch (error) {
             res.send(error);
           }
@@ -75,7 +72,7 @@ router.get("/", async function (req, res, next) {
       });
     }
   } catch (error) {
-    res.send(error);
+    res.json(error);
     console.error(error);
   }
 });

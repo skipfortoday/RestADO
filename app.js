@@ -9,6 +9,7 @@ var usersRouter = require("./routes/users");
 var evoucherperincianRouter = require("./routes/evoucherperincian");
 var datapasien = require("./routes/datapasien");
 var dokter = require("./routes/kartu-pasien/dokter");
+var ba = require("./routes/kartu-pasien/ba");
 
 var app = express();
 
@@ -28,6 +29,7 @@ app.use("/evoucherperincian", evoucherperincianRouter);
 app.use("/datapasien", datapasien);
 
 app.use("/kartu-pasien/dokter", dokter);
+app.use("/kartu-pasien/ba", ba);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
