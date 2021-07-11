@@ -6,7 +6,7 @@ const router = express.Router();
 
 // setInterval(function () {
 //   axios
-//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
+//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-after")
 //     .then(function (response) {
 //       console.log(response.data);
 //     })
@@ -17,9 +17,9 @@ const router = express.Router();
 
 router.get("/", async function (req, res, next) {
   try {
-    let q = `SELECT TOP 100 *FROM tblPerawatanLokasiFotoBefore
+    let q = `SELECT TOP 100 *FROM tblPerawatanLokasiFotoAfter
     WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblFotoBefore')`;
+    FROM timeAnchor Where tablekey='tblFotoAfter')`;
 
     const querydata = await sqlkp.query(q);
 
@@ -35,7 +35,7 @@ router.get("/", async function (req, res, next) {
           '${items.CompName.substring(0, items.CompName.trim().length - 4)}',
           '${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}',
           '${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.LokasiFotoBefore}',
+          '${items.LokasiFotoAfter}',
           '${moment(moment(items.TglAuto)).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
@@ -47,19 +47,19 @@ router.get("/", async function (req, res, next) {
 
       await axios
         .post(
-          "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/data/",
+          "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/data/",
           { data: dataFinal }
         )
         .then(async function (response) {
           try {
             const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/waktu"
+              "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/waktu"
             );
             WaktuTerakhirSync = lastsync.data.data;
             let querydata = await sqlkp.execute(
               `UPDATE "timeAnchor" set
               "time" = '${WaktuTerakhirSync}' 
-              WHERE tablekey='tblFotoBefore';`
+              WHERE tablekey='tblFotoAfter';`
             );
             res.json({ status: querydata, data: dataFinal });
           } catch (error) {

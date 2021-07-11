@@ -4,16 +4,16 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-setInterval(function () {
-  axios
-    .get("http://localhost:4000/kartu-pasien/dokter")
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .get("http://localhost:4000/kartu-pasien/dokter")
+//     .then(function (response) {
+//       // console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
@@ -31,7 +31,9 @@ router.get("/", async function (req, res, next) {
       let dataTcard = "";
       querydata.forEach((items) => {
         dataTcard += `(
-          '${items.IDDOkter}','${items.NamaDokter}','${items.Status}',
+          '${items.IDDOkter}',
+          '${items.NamaDokter}',
+          '${items.Status}',
           '${items.Exported}',
           '${items.dateTglAuto} ${items.timeTglAuto.substring(
           0,
@@ -39,7 +41,6 @@ router.get("/", async function (req, res, next) {
         )}'),`;
       });
       dataTcard = dataTcard.substring(0, dataTcard.trim().length - 1);
-      console.log(dataTcard);
       await axios
         .post("http://localhost:3000/api/kartu-pasien/dokter/data/", {
           data: dataTcard,

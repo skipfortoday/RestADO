@@ -7,9 +7,11 @@ var logger = require("morgan");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var evoucherperincianRouter = require("./routes/evoucherperincian");
-var datapasien = require("./routes/datapasien");
+var dataPasien = require("./routes/kartu-pasien/data-pasien");
 var dokter = require("./routes/kartu-pasien/dokter");
 var ba = require("./routes/kartu-pasien/ba");
+var lokasiFotoBefore = require("./routes/kartu-pasien/lokasi-foto-before");
+var lokasiFotoAfter = require("./routes/kartu-pasien/lokasi-foto-after");
 
 var app = express();
 
@@ -22,14 +24,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/evoucherperincian", evoucherperincianRouter);
-app.use("/datapasien", datapasien);
-
+app.use("/kartu-pasien/data-pasien", dataPasien);
 app.use("/kartu-pasien/dokter", dokter);
 app.use("/kartu-pasien/ba", ba);
+app.use("/kartu-pasien/lokasi-foto-before", lokasiFotoBefore);
+app.use("/kartu-pasien/lokasi-foto-after", lokasiFotoAfter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
