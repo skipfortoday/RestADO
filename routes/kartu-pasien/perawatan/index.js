@@ -6,7 +6,7 @@ const router = express.Router();
 
 // setInterval(function () {
 //   axios
-//     .get("http://localhost:4000/kartu-pasien/data-pasien")
+//     .get("http://localhost:4000/kartu-pasien/perawatan)
 //     .then(function (response) {
 //       console.log(response.data);
 //     })
@@ -17,59 +17,47 @@ const router = express.Router();
 
 router.get("/", async function (req, res, next) {
   try {
-    let q = `SELECT TOP 100 *FROM tblDataPasien
+    let q = `SELECT TOP 100 *FROM tblPerawatan
     WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblDataPasien')`;
+    FROM timeAnchor Where tablekey='tblPerawatan')`;
 
     const querydata = await sqlkp.query(q);
-    console.log(querydata);
+
     if (querydata[0]) {
       let dataArray = "";
       querydata.forEach((items) => {
         dataArray += `(
-          '${items.NKP}',
           '${items.NoAuto}',
-          '${moment(items.TglAwalDaftar).format("YYYY-MM-DD HH:mm:ss")}',
+          '${items.NoAutoPerawatan}',
+          '${items.NoUrutTreatment}',
+          '${moment(items.TglTreatment).format("YYYY-MM-DD HH:mm:ss")}',
           '${items.Nama}',
           '${items.Alamat}',
           '${items.TelpRumah}',
           '${items.HP}',
-          '${items.Fax}',
-          '${moment(items.TglLahir).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.NoDist}',
-          '${items.NoSponsor}',
+          '${items.Anamnesa}',
+          '${items.Pagi}',
+          '${items.Sore}',
+          '${items.Malam}',
+          '${items.Terapy}',
+          '${items.NamaDokterKonsul}',
+          '${items.NamaDokter}',
+          '${items.NamaBA}',
           '${items.Status}',
-          '${items.Keterangan}',
           '${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}',
           '${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.UserEntry}',
-          '${items.LoginComp}',
-          '${items.CompName}',
+          '${items.Keterangan}',
+          '${items.LoginComp == "null" ? null : items.LoginComp}',
+          '${items.CompName == "null" ? null : items.CompName}',
           '${items.PasienLama}',
-          '${items.Sponsor}',
           '${items.Exported}',
-          '${moment(items.LastCalldateUltah).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.tempCallPasien}',
-          '${moment(items.tempCallDate).format("YYYY-MM-DD HH:mm:ss")}',
-          '${moment(items.tempCallTime).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.tempCallKet}',
-          '${items.tempNoAutoHistoryCallPasienUltah}',
-          '${items.IDSponsor}',
-          '${items.LokasiFoto}',
-          '${items.NoKTP}',
-          '${items.NamaKTP}',
-          '${items.TempatLahir}',
-          '${items.AlamatKTP}',
-          '${items.TelpKTP}',
-          '${items.Kota}',
-          '${items.KotaKTP}',
-          '${items.KotaSMS}',
-          '${items.StatusLtPack}',
-          '${items.NoDistLtPack}',
-          '${items.IDSponsorLtPack}',
-          '${items.PinBB}',       
-          '${items.StatusDiskonPasien}',
-          '${moment(moment(items.TglAuto)).format("YYYY-MM-DD HH:mm:ss")}'),`;
+          '${items.CallPasien}',
+          '${moment(items.CallDate).format("YYYY-MM-DD HH:mm:ss")}',
+          '${moment(items.CallTime).format("YYYY-MM-DD HH:mm:ss")}',
+          '${items.CallKet}',
+          '${items.CallPasienResep}',
+          '${items.IDJenisPerawatan}',
+          '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
       // Data Dipotong , Belakang
@@ -79,19 +67,19 @@ router.get("/", async function (req, res, next) {
       let dataFinal = dataCut.replace(/\s+/g, " ").trim();
 
       await axios
-        .post("http://localhost:3000/api/kartu-pasien/data-pasien/data/", {
+        .post("http://localhost:3000/api/kartu-pasien/perawatan/data/", {
           data: dataFinal,
         })
         .then(async function (response) {
           try {
             const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/data-pasien/waktu"
+              "http://localhost:3000/api/kartu-pasien/perawatan/waktu"
             );
             WaktuTerakhirSync = lastsync.data.data;
             let querydata = await sqlkp.execute(
               `UPDATE "timeAnchor" set
               "time" = '${WaktuTerakhirSync}' 
-                WHERE tablekey='tblDataPasien';`
+              WHERE tablekey='tblPerawatan';`
             );
             res.json({ status: querydata, data: dataFinal });
           } catch (error) {

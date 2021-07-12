@@ -12,7 +12,7 @@ var dokter = require("./routes/kartu-pasien/dokter");
 var ba = require("./routes/kartu-pasien/ba");
 var lokasiFotoBefore = require("./routes/kartu-pasien/lokasi-foto-before");
 var lokasiFotoAfter = require("./routes/kartu-pasien/lokasi-foto-after");
-
+var perawatan = require("./routes/kartu-pasien/perawatan");
 var app = express();
 
 // view engine setup
@@ -32,6 +32,7 @@ app.use("/kartu-pasien/dokter", dokter);
 app.use("/kartu-pasien/ba", ba);
 app.use("/kartu-pasien/lokasi-foto-before", lokasiFotoBefore);
 app.use("/kartu-pasien/lokasi-foto-after", lokasiFotoAfter);
+app.use("/kartu-pasien/perawatan", perawatan);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
