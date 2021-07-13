@@ -17,15 +17,16 @@ const router = express.Router();
 
 router.get("/", async function (req, res, next) {
   try {
-    let q = `SELECT TOP 100 *FROM tblPerawatanLokasiFotoBefore
-    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblFotoBefore')`;
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+                    SELECT TOP 100 *FROM tblPerawatanLokasiFotoBefore
+                    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
+                    FROM timeAnchor Where tablekey='tblFotoBefore')
+            `);
 
-    const querydata = await sqlkp.query(q);
-
-    if (querydata[0]) {
+    if (checkData[0]) {
       let dataArray = "";
-      querydata.forEach((items) => {
+      checkData.forEach((items) => {
         dataArray += `(
           '${items.NoAuto}',
           '${items.NoAutoPerawatan}',
@@ -45,32 +46,30 @@ router.get("/", async function (req, res, next) {
       // Menghilangkan Spaci & Whitespace Agar Dikirim Lebih Ringkas
       let dataFinal = dataCut.replace(/\s+/g, " ").trim();
 
-      await axios
-        .post(
-          "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/data/",
-          { data: dataFinal }
-        )
-        .then(async function (response) {
-          try {
-            const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/waktu"
-            );
-            WaktuTerakhirSync = lastsync.data.data;
-            let querydata = await sqlkp.execute(
-              `UPDATE "timeAnchor" set
-              "time" = '${WaktuTerakhirSync}' 
-              WHERE tablekey='tblFotoBefore';`
-            );
-            res.json({ status: querydata, data: dataFinal });
-          } catch (error) {
-            res.send(error);
-          }
-        })
-        .catch(function (error) {
-          res.send(error);
-        });
-    } else {
+      // Push Data Ke API untuk di simpan dan di MERGE
+      const pushData = await axios.post(
+        "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/data/",
+        { data: dataFinal }
+      );
+
+      // Mendapatkan Waktu Data Terakhir Update
+      const getTimeAnchor = await axios.get(
+        "http://localhost:3000/api/kartu-pasien/lokasi-foto-before/waktu"
+      );
+
+      // Update Waktu Acuan ke DB Client
+      const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
+            "time" = '${getTimeAnchor.data.data}'
+            WHERE tablekey='tblFotoBefore';`);
+
       res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Sinkron Data",
+        waktu: getTimeAnchor.data.data,
+      });
+    } else {
+      res.status(204).json({
         success: false,
         status: 204,
         message: "Belum ada data untuk sinkron",

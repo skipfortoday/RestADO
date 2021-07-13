@@ -4,67 +4,67 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-// setInterval(function () {
-//   axios
-//     .get("http://localhost:4000/kartu-pasien/ba")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .get("http://localhost:4000/kartu-pasien/ba")
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
-    let q = `
-    SELECT TOP 100 
-    IDBA,NamaBA,Status,Exported,
-    CONVERT(date, TglAuto) as dateTglAuto,
-    CONVERT(time, TglAuto) as timeTglAuto
-    FROM tblBA
-    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblBA');
-  `;
-    const querydata = await sqlkp.query(q);
-    if (querydata[0]) {
-      let dataTcard = "";
-      querydata.forEach((items) => {
-        dataTcard += `(
-          '${items.IDBA}','${items.NamaBA}','${items.Status}',
-          '${items.Exported}',
-          '${items.dateTglAuto} ${items.timeTglAuto.substring(
-          0,
-          items.timeTglAuto.trim().length - 8
-        )}'),`;
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+    SELECT TOP 100 *FROM tblBA
+       WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999'
+        FROM timeAnchor Where tablekey='tblBA');
+            `);
+
+    if (checkData[0]) {
+      let dataArray = "";
+      checkData.forEach((items) => {
+        dataArray += `(
+                  '${items.IDBA}',
+                  '${items.NamaBA}',
+                  '${items.Status}',
+                  '${items.Exported}',
+                  '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
-      dataTcard = dataTcard.substring(0, dataTcard.trim().length - 1);
-      console.log(dataTcard);
-      await axios
-        .post("http://localhost:3000/api/kartu-pasien/ba/data/", {
-          data: dataTcard,
-        })
-        .then(async function (response) {
-          try {
-            const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/ba/waktu"
-            );
-            WaktuTerakhirSync = lastsync.data.data;
-            let querydata = await sqlkp.execute(
-              `UPDATE "timeAnchor" set
-              "time" = '${WaktuTerakhirSync}' 
-              WHERE tablekey='tblBA';`
-            );
-            res.json(querydata);
-          } catch (error) {
-            res.send(error);
-          }
-        })
-        .catch(function (error) {
-          res.send(error);
-        });
-    } else {
+
+      // Data Dipotong , Belakang
+      let dataCut = dataArray.substring(0, dataArray.trim().length - 1);
+
+      // Menghilangkan Spaci & Whitespace Agar Dikirim Lebih Ringkas
+      let dataFinal = dataCut.replace(/\s+/g, " ").trim();
+
+      //Push Data Ke API untuk di simpan dan di MERGE
+      const pushData = await axios.post(
+        "http://localhost:3000/api/kartu-pasien/ba/data/",
+        { data: dataFinal }
+      );
+
+      //Mendapatkan Waktu Data Terakhir Update
+      const getTimeAnchor = await axios.get(
+        "http://localhost:3000/api/kartu-pasien/ba/waktu"
+      );
+
+      //Update Waktu Acuan ke DB Client
+      const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
+            "time" = '${getTimeAnchor.data.data}'
+            WHERE tablekey='tblBA';`);
+
       res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Sinkron Data",
+        waktu: getTimeAnchor.data.data,
+      });
+    } else {
+      res.status(204).json({
         success: false,
         status: 204,
         message: "Belum ada data untuk sinkron",
@@ -72,7 +72,7 @@ router.get("/", async function (req, res, next) {
       });
     }
   } catch (error) {
-    res.json(error);
+    res.send(error);
     console.error(error);
   }
 });
