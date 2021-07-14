@@ -4,16 +4,16 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-setInterval(function () {
-  axios
-    .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {

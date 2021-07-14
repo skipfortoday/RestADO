@@ -4,21 +4,21 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-// setInterval(function () {
-//   axios
-//     .get("http://localhost:4000/kartu-pasien/perawatan")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .get("http://localhost:4000/kartu-pasien/perawatan")
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
     // Mengecek Apakah Ada Data Terbaru
-    const checkData = await sqlkp.query(`SELECT TOP 1 *FROM tblPerawatan
+    const checkData = await sqlkp.query(`SELECT TOP 100 *FROM tblPerawatan
     WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
     FROM timeAnchor Where tablekey='tblPerawatan')`);
 
@@ -27,38 +27,76 @@ router.get("/", async function (req, res, next) {
       checkData.forEach((items) => {
         dataArray += `(
           '${items.NoAuto}',
-          '${items.NKP}',
+           ${items.NKP == null ? null : `'${items.NKP}'`},
            ${
              items.NoUrutTreatment == null ? null : `'${items.NoUrutTreatment}'`
            },
-          '${moment(items.TglTreatment).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.Nama}',
-          '${items.Alamat}',
-          '${items.TelpRumah}',
-          '${items.HP}',
-          '${items.Anamnesa}',
-          '${items.Pagi}',
-          '${items.Sore}',
-          '${items.Malam}',
-          '${items.Terapy}',
-          '${items.NamaDokterKonsul}',
-          '${items.NamaDokter}',
-          '${items.NamaBA}',
-          '${items.Status}',
-          '${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.Keterangan}',
-          '${items.UserEntry}',
-          '${items.LoginComp.replace("\x00", "")}',
-          '${items.CompName.replace("\x00", "")}',
-          '${items.PasienLama}',
-          '${items.Exported}',
-          '${items.CallPasien}',
-          '${moment(items.CallDate).format("YYYY-MM-DD HH:mm:ss")}',
-          '${moment(items.CallTime).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.CallKet}',
-          '${items.CallPasienResep}',
-          '${items.IDJenisPerawatan}',
+           ${
+             items.TglTreatment == null
+               ? null
+               : `'${moment(items.TglTreatment).format("YYYY-MM-DD HH:mm:ss")}'`
+           },
+           ${items.Nama == null ? null : `'${items.Nama}'`},
+           ${items.Alamat == null ? null : `'${items.Alamat}'`},
+           ${items.TelpRumah == null ? null : `'${items.TelpRumah}'`},
+           ${items.HP == null ? null : `'${items.HP}'`},
+           ${items.Anamnesa == null ? null : `'${items.Anamnesa}'`},
+           ${items.Pagi == null ? null : `'${items.Pagi}'`},
+           ${items.Sore == null ? null : `'${items.Sore}'`},
+           ${items.Malam == null ? null : `'${items.Malam}'`},
+           ${items.Terapy == null ? null : `'${items.Terapy}'`},
+           ${
+             items.NamaDokterKonsul == null
+               ? null
+               : `'${items.NamaDokterKonsul}'`
+           },
+           ${items.NamaDokter == null ? null : `'${items.NamaDokter}'`},
+           ${items.NamaBA == null ? null : `'${items.NamaBA}'`},
+           ${items.Status == null ? null : `'${items.Status}'`},
+           ${
+             items.TglActivitas == null
+               ? null
+               : `'${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+           },
+           ${
+             items.JamActivitas == null
+               ? null
+               : `'${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+           },
+           ${items.Keterangan == null ? null : `'${items.Keterangan}'`}, 
+           ${items.UserEntry == null ? null : `'${items.UserEntry}'`},
+           ${
+             items.LoginComp == null
+               ? null
+               : `'${items.LoginComp.replace("\x00", "")}'`
+           },
+           ${
+             items.CompName == null
+               ? null
+               : `'${items.CompName.replace("\x00", "")}'`
+           },
+           ${items.PasienLama == null ? null : `'${items.PasienLama}'`},
+           ${items.Exported == null ? null : `'${items.Exported}'`},
+           ${items.CallPasien == null ? null : `'${items.CallPasien}'`},
+           ${
+             items.CallDate == null
+               ? null
+               : `'${moment(items.CallDate).format("YYYY-MM-DD HH:mm:ss")}'`
+           },
+           ${
+             items.CallTime == null
+               ? null
+               : `'${moment(items.CallTime).format("YYYY-MM-DD HH:mm:ss")}'`
+           },
+           ${items.CallKet == null ? null : `'${items.CallKet}'`},
+           ${
+             items.CallPasienResep == null ? null : `'${items.CallPasienResep}'`
+           },
+           ${
+             items.IDJenisPerawatan == null
+               ? null
+               : `'${items.IDJenisPerawatan}'`
+           },
           '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
