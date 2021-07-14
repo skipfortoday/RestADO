@@ -4,16 +4,16 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-// setInterval(function () {
-//   axios
-//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
@@ -29,15 +29,37 @@ router.get("/", async function (req, res, next) {
       checkData.forEach((items) => {
         dataArray += `(
           '${items.NoAuto}',
-          '${items.NoAutoPerawatan}',
-          '${items.Keterangan}',
-          '${items.UserEntry}',
-          '${items.LoginComp.substring(0, items.LoginComp.trim().length - 4)}',
-          '${items.CompName.substring(0, items.CompName.trim().length - 4)}',
-          '${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.LokasiFotoBefore}',
-          '${moment(moment(items.TglAuto)).format("YYYY-MM-DD HH:mm:ss")}'),`;
+          ${
+            items.NoAutoPerawatan == null ? null : `'${items.NoAutoPerawatan}'`
+          },
+          ${items.Keterangan == null ? null : `'${items.Keterangan}'`},
+          ${items.UserEntry == null ? null : `'${items.UserEntry}'`},
+          ${
+            items.LoginComp == null
+              ? null
+              : `'${items.LoginComp.replace("\x00", "")}'`
+          },
+          ${
+            items.CompName == null
+              ? null
+              : `'${items.CompName.replace("\x00", "")}'`
+          },
+          ${
+            items.TglActivitas == null
+              ? null
+              : `'${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+          },
+          ${
+            items.JamActivitas == null
+              ? null
+              : `'${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+          },
+          ${
+            items.LokasiFotoBefore == null
+              ? null
+              : `'${items.LokasiFotoBefore}'`
+          },
+          '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
       // Data Dipotong , Belakang

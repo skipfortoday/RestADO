@@ -4,39 +4,60 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-// setInterval(function () {
-//   axios
-//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-after")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .get("http://localhost:4000/kartu-pasien/lokasi-foto-after")
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
-    let q = `SELECT TOP 100 *FROM tblPerawatanLokasiFotoAfter
-    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblFotoAfter')`;
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+                    SELECT TOP 100 *FROM tblPerawatanLokasiFotoAfter
+                    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
+                    FROM timeAnchor Where tablekey='tblFotoAfter')
+            `);
 
-    const querydata = await sqlkp.query(q);
-
-    if (querydata[0]) {
+    if (checkData[0]) {
       let dataArray = "";
-      querydata.forEach((items) => {
+      checkData.forEach((items) => {
         dataArray += `(
           '${items.NoAuto}',
-          '${items.NoAutoPerawatan}',
-          '${items.Keterangan}',
-          '${items.UserEntry}',
-          '${items.LoginComp.substring(0, items.LoginComp.trim().length - 4)}',
-          '${items.CompName.substring(0, items.CompName.trim().length - 4)}',
-          '${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}',
-          '${items.LokasiFotoAfter}',
-          '${moment(moment(items.TglAuto)).format("YYYY-MM-DD HH:mm:ss")}'),`;
+          ${
+            items.NoAutoPerawatan == null ? null : `'${items.NoAutoPerawatan}'`
+          },
+          ${items.Keterangan == null ? null : `'${items.Keterangan}'`},
+          ${items.UserEntry == null ? null : `'${items.UserEntry}'`},
+          ${
+            items.LoginComp == null
+              ? null
+              : `'${items.LoginComp.replace("\x00", "")}'`
+          },
+          ${
+            items.CompName == null
+              ? null
+              : `'${items.CompName.replace("\x00", "")}'`
+          },
+          ${
+            items.TglActivitas == null
+              ? null
+              : `'${moment(items.TglActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+          },
+          ${
+            items.JamActivitas == null
+              ? null
+              : `'${moment(items.JamActivitas).format("YYYY-MM-DD HH:mm:ss")}'`
+          },
+          ${
+            items.LokasiFotoAfter == null ? null : `'${items.LokasiFotoAfter}'`
+          },
+          '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
       // Data Dipotong , Belakang
@@ -44,33 +65,29 @@ router.get("/", async function (req, res, next) {
 
       // Menghilangkan Spaci & Whitespace Agar Dikirim Lebih Ringkas
       let dataFinal = dataCut.replace(/\s+/g, " ").trim();
+      // Push Data Ke API untuk di simpan dan di MERGE
+      const pushData = await axios.post(
+        "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/data/",
+        { data: dataFinal }
+      );
 
-      await axios
-        .post(
-          "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/data/",
-          { data: dataFinal }
-        )
-        .then(async function (response) {
-          try {
-            const lastsync = await axios.get(
-              "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/waktu"
-            );
-            WaktuTerakhirSync = lastsync.data.data;
-            let querydata = await sqlkp.execute(
-              `UPDATE "timeAnchor" set
-              "time" = '${WaktuTerakhirSync}' 
-              WHERE tablekey='tblFotoAfter';`
-            );
-            res.json({ status: querydata, data: dataFinal });
-          } catch (error) {
-            res.send(error);
-          }
-        })
-        .catch(function (error) {
-          res.send(error);
-        });
-    } else {
+      // Mendapatkan Waktu Data Terakhir Update
+      const getTimeAnchor = await axios.get(
+        "http://localhost:3000/api/kartu-pasien/lokasi-foto-after/waktu"
+      );
+
+      // Update Waktu Acuan ke DB Client
+      const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
+            "time" = '${getTimeAnchor.data.data}'
+            WHERE tablekey='tblFotoAfter';`);
       res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Sinkron Data",
+        waktu: getTimeAnchor.data.data,
+      });
+    } else {
+      res.status(204).json({
         success: false,
         status: 204,
         message: "Belum ada data untuk sinkron",

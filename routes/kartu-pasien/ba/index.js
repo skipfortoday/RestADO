@@ -4,16 +4,16 @@ const moment = require("moment");
 const sqlkp = require("../../../sqlkartupasien");
 const router = express.Router();
 
-setInterval(function () {
-  axios
-    .get("http://localhost:4000/kartu-pasien/ba")
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .get("http://localhost:4000/kartu-pasien/ba")
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.get("/", async function (req, res, next) {
   try {
@@ -29,9 +29,9 @@ router.get("/", async function (req, res, next) {
       checkData.forEach((items) => {
         dataArray += `(
                   '${items.IDBA}',
-                  '${items.NamaBA}',
-                  '${items.Status}',
-                  '${items.Exported}',
+                  ${items.NamaBA == null ? null : `'${items.NamaBA}'`},
+                  ${items.Status == null ? null : `'${items.Status}'`},
+                  ${items.Exported == null ? null : `'${items.Exported}'`},
                   '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
