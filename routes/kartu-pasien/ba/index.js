@@ -19,10 +19,7 @@ router.get("/", async function (req, res, next) {
   try {
     // Mengecek Apakah Ada Data Terbaru
     const checkData = await sqlkp.query(`
-    SELECT TOP 100 *FROM tblBA
-       WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999'
-        FROM timeAnchor Where tablekey='tblBA');
-            `);
+    SELECT TOP 100 *FROM tblBA JOIN flagBA ON tblBA.IDBA = flagBA.flagIDBA WHERE flagBA.flagPush = 0;`);
 
     if (checkData[0]) {
       let dataArray = "";
@@ -56,6 +53,16 @@ router.get("/", async function (req, res, next) {
       const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
             "time" = '${getTimeAnchor.data.data}'
             WHERE tablekey='tblBA';`);
+
+      await sqlkp.execute(`
+      SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
+      INSERT INTO "#tmpBA"
+                  ("IDBA", "NamaBA", "Status", "Exported" , TglAuto) VALUES ${dataFinal};
+      MERGE flagBA AS Target
+      USING (SELECT * FROM #tmpBA) AS Source
+          ON (Target.flagIDBA = Source.IDBA)
+          WHEN MATCHED THEN
+               UPDATE SET Target.flagPush = 1;`);
 
       res.json({
         success: true,
