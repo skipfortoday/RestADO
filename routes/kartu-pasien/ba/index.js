@@ -131,6 +131,16 @@ router.get("/", async function (req, res, next) {
                           Source.Exported,Source.TglAuto);
           `);
 
+      await sqlkp.execute(`
+          SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
+          INSERT INTO "#tmpBA"
+                      ("IDBA", "NamaBA", "Status", "Exported" , "TglAuto") VALUES ${pullData.data.data};
+          MERGE flagBA AS Target
+          USING (SELECT * FROM #tmpBA) AS Source
+              ON (Target.flagIDBA = Source.IDBA)
+              WHEN MATCHED THEN
+                   UPDATE SET Target.flagPush = 1;`);
+
       const pullFlag = await axios.post(
         `${conf.baseURL}/kartu-pasien/ba/pull/${conf.kodeCabang}`,
         { data: pullData.data.data }
