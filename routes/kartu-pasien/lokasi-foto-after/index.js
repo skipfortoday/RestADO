@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const moment = require("moment");
-const sqlkp = require("../../../sqlkartupasien");
+const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 
 // setInterval(function () {

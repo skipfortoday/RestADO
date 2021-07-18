@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const moment = require("moment");
-const sqlkp = require("../../../sqlkartupasien");
+const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 
 // setInterval(function () {
@@ -19,9 +19,7 @@ router.get("/", async function (req, res, next) {
   try {
     // Mengecek Apakah Ada Data Terbaru
     const checkData = await sqlkp.query(`
-    SELECT TOP 100 *FROM tblDataPasien
-    WHERE TglAuto > (SELECT CONVERT(varchar, "time", 120)+'.999' 
-    FROM timeAnchor Where tablekey='tblDataPasien')
+    SELECT TOP 100 *FROM tblDataPasien JOIN flagDataPasien ON tblDataPasien.NKP = flagDataPasien.flagNKP WHERE flagDataPasien.flagPush = 0;
             `);
     if (checkData[0]) {
       let dataArray = "";
@@ -34,8 +32,10 @@ router.get("/", async function (req, res, next) {
               ? null
               : `'${moment(items.TglAwalDaftar).format("YYYY-MM-DD HH:mm:ss")}'`
           },
-          ${items.Nama == null ? null : `'${items.Nama}'`},
-          ${items.Alamat == null ? null : `'${items.Alamat}'`},
+          ${items.Nama == null ? null : `'${items.Nama.replace("'", "''")}'`},
+          ${
+            items.Alamat == null ? null : `'${items.Alamat.replace("'", "''")}'`
+          },
           ${items.TelpRumah == null ? null : `'${items.TelpRumah}'`},
           ${items.HP == null ? null : `'${items.HP}'`},
           ${items.Fax == null ? null : `'${items.Fax}'`},
@@ -47,7 +47,11 @@ router.get("/", async function (req, res, next) {
           ${items.NoDist == null ? null : `'${items.NoDist}'`}, 
           ${items.NoSponsor == null ? null : `'${items.NoSponsor}'`},
           ${items.Status == null ? null : `'${items.Status}'`},
-          ${items.Keterangan == null ? null : `'${items.Keterangan}'`},
+          ${
+            items.Keterangan == null
+              ? null
+              : `'${items.Keterangan.replace("'", "''")}'`
+          },
           ${
             items.TglActivitas == null
               ? null
@@ -97,9 +101,17 @@ router.get("/", async function (req, res, next) {
               : `'${items.tempNoAutoHistoryCallPasienUltah}'`
           },
           ${items.IDSponsor == null ? null : `'${items.IDSponsor}'`},
-          ${items.LokasiFoto == null ? null : `'${items.LokasiFoto}'`},
+          ${
+            items.LokasiFoto == null
+              ? null
+              : `'${items.LokasiFoto.replace("'", "''")}'`
+          },
           ${items.NoKTP == null ? null : `'${items.NoKTP}'`},
-          ${items.NamaKTP == null ? null : `'${items.NamaKTP}'`},
+          ${
+            items.NamaKTP == null
+              ? null
+              : `'${items.NamaKTP.replace("'", "''")}'`
+          },
           ${items.TempatLahir == null ? null : `'${items.TempatLahir}'`},
           ${items.AlamatKTP == null ? null : `'${items.AlamatKTP}'`},
           ${items.TelpKTP == null ? null : `'${items.TelpKTP}'`},
@@ -141,6 +153,59 @@ router.get("/", async function (req, res, next) {
       const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
             "time" = '${getTimeAnchor.data.data}'
             WHERE tablekey='tblDataPasien';`);
+
+      await sqlkp.execute(`
+      SELECT Top 0 * INTO "#tmpDataPasien" FROM "tblDataPasien";
+      INSERT INTO "#tmpDataPasien"
+         ("NKP"
+          ,"NoAuto"
+          ,"TglAwalDaftar"
+          ,"Nama"
+          ,"Alamat"
+          ,"TelpRumah"
+          ,"HP"
+          ,"Fax"
+          ,"TglLahir"
+          ,"NoDist"
+          ,"NoSponsor"
+          ,"Status"
+          ,"Keterangan"
+          ,"TglActivitas"
+          ,"JamActivitas"
+          ,"UserEntry"
+          ,"LoginComp"
+          ,"CompName"
+          ,"PasienLama"
+          ,"Sponsor"
+          ,"Exported"
+          ,"LastCallDateUltah"
+          ,"tempCallPasien"
+          ,"tempCallDate"
+          ,"tempCallTime"
+          ,"tempCallKet"
+          ,"tempNoAutoHistoryCallPasienUltah"
+          ,"IDSponsor"
+          ,"LokasiFoto"
+          ,"NoKTP"
+          ,"NamaKTP"
+          ,"TempatLahir"
+          ,"AlamatKTP"
+          ,"TelpKTP"
+          ,"Kota"
+          ,"KotaKTP"
+          ,"KotaSMS"
+          ,"StatusLtPack"
+          ,"NoDistLtPack"
+          ,"IDSponsorLtPack"
+          ,"PinBB"
+          ,"StatusDiskonPasien"
+          ,"TglAuto") VALUES ${dataFinal};
+      MERGE flagDataPasien AS Target
+      USING (SELECT * FROM #tmpDataPasien) AS Source
+      ON (Target.flagNKP = Source.NKP)
+      WHEN MATCHED THEN
+          UPDATE SET Target.flagPush = 1;                  
+            `);
 
       res.json({
         success: true,
