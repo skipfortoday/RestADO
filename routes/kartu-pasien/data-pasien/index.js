@@ -3,6 +3,7 @@ const axios = require("axios");
 const moment = require("moment");
 const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
+const conf = require("../../../config/main");
 
 // setInterval(function () {
 //   axios
@@ -15,7 +16,18 @@ const router = express.Router();
 //     });
 // }, 3000);
 
-router.get("/", async function (req, res, next) {
+// setInterval(function () {
+//   axios
+//     .post("http://localhost:4000/kartu-pasien/data-pasien")
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
+
+router.post("/", async function (req, res, next) {
   try {
     // Mengecek Apakah Ada Data Terbaru
     const checkData = await sqlkp.query(`
@@ -112,12 +124,28 @@ router.get("/", async function (req, res, next) {
               ? null
               : `'${items.NamaKTP.replace("'", "''")}'`
           },
-          ${items.TempatLahir == null ? null : `'${items.TempatLahir}'`},
-          ${items.AlamatKTP == null ? null : `'${items.AlamatKTP}'`},
+          ${
+            items.TempatLahir == null
+              ? null
+              : `'${items.TempatLahir.replace("'", "''")}'`
+          },
+          ${
+            items.AlamatKTP == null
+              ? null
+              : `'${items.AlamatKTP.replace("'", "''")}'`
+          },
           ${items.TelpKTP == null ? null : `'${items.TelpKTP}'`},
-          ${items.Kota == null ? null : `'${items.Kota}'`},
-          ${items.KotaKTP == null ? null : `'${items.KotaKTP}'`},
-          ${items.KotaSMS == null ? null : `'${items.KotaSMS}'`},
+          ${items.Kota == null ? null : `'${items.Kota.replace("'", "''")}'`},
+          ${
+            items.KotaKTP == null
+              ? null
+              : `'${items.KotaKTP.replace("'", "''")}'`
+          },
+          ${
+            items.KotaSMS == null
+              ? null
+              : `'${items.KotaSMS.replace("'", "''")}'`
+          },
           ${items.StatusLtPack == null ? null : `'${items.StatusLtPack}'`},
           ${items.NoDistLtPack == null ? null : `'${items.NoDistLtPack}'`},
           ${
@@ -140,19 +168,19 @@ router.get("/", async function (req, res, next) {
 
       //Push Data Ke API untuk di simpan dan di MERGE
       const pushData = await axios.post(
-        "http://localhost:3000/api/kartu-pasien/data-pasien/data/",
+        `${conf.baseURL}/kartu-pasien/data-pasien/push/${conf.kodeCabang}`,
         { data: dataFinal }
       );
 
-      //Mendapatkan Waktu Data Terakhir Update
-      const getTimeAnchor = await axios.get(
-        "http://localhost:3000/api/kartu-pasien/data-pasien/waktu"
-      );
+      // //Mendapatkan Waktu Data Terakhir Update
+      // const getTimeAnchor = await axios.get(
+      //   "http://localhost:3000/api/kartu-pasien/data-pasien/waktu"
+      // );
 
-      //Update Waktu Acuan ke DB Client
-      const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
-            "time" = '${getTimeAnchor.data.data}'
-            WHERE tablekey='tblDataPasien';`);
+      // //Update Waktu Acuan ke DB Client
+      // const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
+      //       "time" = '${getTimeAnchor.data.data}'
+      //       WHERE tablekey='tblDataPasien';`);
 
       await sqlkp.execute(`
       SELECT Top 0 * INTO "#tmpDataPasien" FROM "tblDataPasien";
@@ -211,7 +239,7 @@ router.get("/", async function (req, res, next) {
         success: true,
         status: 200,
         message: "Berhasil Sinkron Data",
-        waktu: getTimeAnchor.data.data,
+        data: dataFinal,
       });
     } else {
       res.status(204).json({
@@ -223,6 +251,279 @@ router.get("/", async function (req, res, next) {
     }
   } catch (error) {
     res.send(error);
+    console.error(error);
+  }
+});
+
+// Pull DataDariServer
+router.get("/", async function (req, res, next) {
+  try {
+    // Mengambil Data (Pull Data)
+    const pullData = await axios.get(
+      `${conf.baseURL}/kartu-pasien/data-pasien/pull/${conf.kodeCabang}`
+    );
+
+    if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
+      await sqlkp.execute(`
+      SELECT Top 0 * INTO "#tmpDataPasien" FROM "tblDataPasien";
+      INSERT INTO "#tmpDataPasien"
+         ("NKP"
+          ,"NoAuto"
+          ,"TglAwalDaftar"
+          ,"Nama"
+          ,"Alamat"
+          ,"TelpRumah"
+          ,"HP"
+          ,"Fax"
+          ,"TglLahir"
+          ,"NoDist"
+          ,"NoSponsor"
+          ,"Status"
+          ,"Keterangan"
+          ,"TglActivitas"
+          ,"JamActivitas"
+          ,"UserEntry"
+          ,"LoginComp"
+          ,"CompName"
+          ,"PasienLama"
+          ,"Sponsor"
+          ,"Exported"
+          ,"LastCallDateUltah"
+          ,"tempCallPasien"
+          ,"tempCallDate"
+          ,"tempCallTime"
+          ,"tempCallKet"
+          ,"tempNoAutoHistoryCallPasienUltah"
+          ,"IDSponsor"
+          ,"LokasiFoto"
+          ,"NoKTP"
+          ,"NamaKTP"
+          ,"TempatLahir"
+          ,"AlamatKTP"
+          ,"TelpKTP"
+          ,"Kota"
+          ,"KotaKTP"
+          ,"KotaSMS"
+          ,"StatusLtPack"
+          ,"NoDistLtPack"
+          ,"IDSponsorLtPack"
+          ,"PinBB"
+          ,"StatusDiskonPasien"
+          ,"TglAuto") VALUES ${pullData.data.data};
+      MERGE tblDataPasien AS Target
+      USING (SELECT * FROM #tmpDataPasien) AS Source
+      ON (Target.NKP = Source.NKP)
+      WHEN MATCHED THEN
+          UPDATE SET Target.NKP = Source.NKP,
+                     Target.NoAuto = Source.NoAuto,
+                     Target.TglAwalDaftar = Source.TglAwalDaftar,
+                     Target.Nama = Source.Nama,
+                     Target.Alamat = Source.Alamat,
+                     Target.TelpRumah = Source.TelpRumah,
+                     Target.HP = Source.HP,
+                     Target.Fax = Source.Fax,
+                     Target.TglLahir = Source.TglLahir,
+                     Target.NoDist = Source.NoDist,
+                     Target.NoSponsor = Source.NoSponsor,
+                     Target.Status = Source.Status,
+                     Target.Keterangan = Source.Keterangan,
+                     Target.TglActivitas = Source.TglActivitas,
+                     Target.JamActivitas = Source.JamActivitas,
+                     Target.UserEntry = Source.UserEntry,
+                     Target.LoginComp = Source.LoginComp,
+                     Target.CompName = Source.CompName,
+                     Target.PasienLama = Source.PasienLama,
+                     Target.Sponsor = Source.Sponsor,
+                     Target.Exported = Source.Exported,
+                     Target.LastCallDateUltah = Source.LastCallDateUltah,
+                     Target.tempCallPasien = Source.tempCallPasien,
+                     Target.tempCallDate = Source.tempCallDate,
+                     Target.tempCallTime = Source.tempCallTime,
+                     Target.tempCallKet = Source.tempCallKet,
+                     Target.tempNoAutoHistoryCallPasienUltah = Source.tempNoAutoHistoryCallPasienUltah,
+                     Target.IDSponsor = Source.IDSponsor,
+                     Target.LokasiFoto = Source.LokasiFoto,
+                     Target.NoKTP = Source.NoKTP,
+                     Target.NamaKTP = Source.NamaKTP,
+                     Target.TempatLahir = Source.TempatLahir,
+                     Target.AlamatKTP = Source.AlamatKTP,
+                     Target.TelpKTP = Source.TelpKTP,
+                     Target.Kota = Source.Kota,
+                     Target.KotaKTP = Source.KotaKTP,
+                     Target.KotaSMS = Source.KotaSMS,
+                     Target.StatusLtPack = Source.StatusLtPack,
+                     Target.NoDistLtPack = Source.NoDistLtPack,
+                     Target.IDSponsorLtPack = Source.IDSponsorLtPack,
+                     Target.PinBB = Source.PinBB,
+                     Target.StatusDiskonPasien = Source.StatusDiskonPasien,
+                     Target.TglAuto = Source.TglAuto
+      WHEN NOT MATCHED BY TARGET THEN
+    INSERT (NKP
+    ,NoAuto
+    ,TglAwalDaftar
+    ,Nama
+    ,Alamat
+    ,TelpRumah
+    ,HP
+    ,Fax
+    ,TglLahir
+    ,NoDist
+    ,NoSponsor
+    ,Status
+    ,Keterangan
+    ,TglActivitas
+    ,JamActivitas
+    ,UserEntry
+    ,LoginComp
+    ,CompName
+    ,PasienLama
+    ,Sponsor
+    ,Exported
+    ,LastCallDateUltah
+    ,tempCallPasien
+    ,tempCallDate
+    ,tempCallTime
+    ,tempCallKet
+    ,tempNoAutoHistoryCallPasienUltah
+    ,IDSponsor
+    ,LokasiFoto
+    ,NoKTP
+    ,NamaKTP
+    ,TempatLahir
+    ,AlamatKTP
+    ,TelpKTP
+    ,Kota
+    ,KotaKTP
+    ,KotaSMS
+    ,StatusLtPack
+    ,NoDistLtPack
+    ,IDSponsorLtPack
+    ,PinBB
+    ,StatusDiskonPasien
+    ,TglAuto)
+          VALUES (Source.NKP
+            ,Source.NoAuto
+            ,Source.TglAwalDaftar
+            ,Source.Nama
+            ,Source.Alamat
+            ,Source.TelpRumah
+            ,Source.HP
+            ,Source.Fax
+            ,Source.TglLahir
+            ,Source.NoDist
+            ,Source.NoSponsor
+            ,Source.Status
+            ,Source.Keterangan
+            ,Source.TglActivitas
+            ,Source.JamActivitas
+            ,Source.UserEntry
+            ,Source.LoginComp
+            ,Source.CompName
+            ,Source.PasienLama
+            ,Source.Sponsor
+            ,Source.Exported
+            ,Source.LastCallDateUltah
+            ,Source.tempCallPasien
+            ,Source.tempCallDate
+            ,Source.tempCallTime
+            ,Source.tempCallKet
+            ,Source.tempNoAutoHistoryCallPasienUltah
+            ,Source.IDSponsor
+            ,Source.LokasiFoto
+            ,Source.NoKTP
+            ,Source.NamaKTP
+            ,Source.TempatLahir
+            ,Source.AlamatKTP
+            ,Source.TelpKTP
+            ,Source.Kota
+            ,Source.KotaKTP
+            ,Source.KotaSMS
+            ,Source.StatusLtPack
+            ,Source.NoDistLtPack
+            ,Source.IDSponsorLtPack
+            ,Source.PinBB
+            ,Source.StatusDiskonPasien
+            ,Source.TglAuto);
+          `);
+
+      // Menandai agar tidak di push kembali
+      await sqlkp.execute(`
+      SELECT Top 0 * INTO "#tmpDataPasien" FROM "tblDataPasien";
+      INSERT INTO "#tmpDataPasien"
+         ("NKP"
+          ,"NoAuto"
+          ,"TglAwalDaftar"
+          ,"Nama"
+          ,"Alamat"
+          ,"TelpRumah"
+          ,"HP"
+          ,"Fax"
+          ,"TglLahir"
+          ,"NoDist"
+          ,"NoSponsor"
+          ,"Status"
+          ,"Keterangan"
+          ,"TglActivitas"
+          ,"JamActivitas"
+          ,"UserEntry"
+          ,"LoginComp"
+          ,"CompName"
+          ,"PasienLama"
+          ,"Sponsor"
+          ,"Exported"
+          ,"LastCallDateUltah"
+          ,"tempCallPasien"
+          ,"tempCallDate"
+          ,"tempCallTime"
+          ,"tempCallKet"
+          ,"tempNoAutoHistoryCallPasienUltah"
+          ,"IDSponsor"
+          ,"LokasiFoto"
+          ,"NoKTP"
+          ,"NamaKTP"
+          ,"TempatLahir"
+          ,"AlamatKTP"
+          ,"TelpKTP"
+          ,"Kota"
+          ,"KotaKTP"
+          ,"KotaSMS"
+          ,"StatusLtPack"
+          ,"NoDistLtPack"
+          ,"IDSponsorLtPack"
+          ,"PinBB"
+          ,"StatusDiskonPasien"
+          ,"TglAuto") VALUES ${pullData.data.data};
+      MERGE flagDataPasien AS Target
+      USING (SELECT * FROM #tmpDataPasien) AS Source
+      ON (Target.flagNKP = Source.NKP)
+      WHEN MATCHED THEN
+          UPDATE SET Target.flagPush = 1;                  
+            `);
+
+      // Memberikan flag di row server kalau sudah di pull data tsb
+
+      const pullFlag = await axios.post(
+        `${conf.baseURL}/kartu-pasien/data-pasien/pull/${conf.kodeCabang}`,
+        { data: pullData.data.data }
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Pull Data",
+        data: pullData.data.data,
+      });
+    } else {
+      res.status(204).json({
+        success: true,
+        status: 204,
+        message: "Belum ada data",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
     console.error(error);
   }
 });

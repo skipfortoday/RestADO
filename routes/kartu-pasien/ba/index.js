@@ -5,27 +5,28 @@ const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 const conf = require("../../../config/main");
 
-setInterval(function () {
-  axios
-    .post(`${conf.appURL}/kartu-pasien/ba`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/ba`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
-setInterval(function () {
-  axios
-    .get(`${conf.appURL}/kartu-pasien/ba`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .get(`${conf.appURL}/kartu-pasien/ba`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
+
 // firebase
 //   .database()
 //   .ref("/datapasien")
@@ -47,7 +48,11 @@ router.post("/", async function (req, res, next) {
       checkData.forEach((items) => {
         dataArray += `(
                   '${items.IDBA}',
-                  ${items.NamaBA == null ? null : `'${items.NamaBA}'`},
+                  ${
+                    items.NamaBA == null
+                      ? null
+                      : `'${items.NamaBA.replace("'", "''")}'`
+                  },
                   ${items.Status == null ? null : `'${items.Status}'`},
                   ${items.Exported == null ? null : `'${items.Exported}'`},
                   '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
@@ -74,6 +79,8 @@ router.post("/", async function (req, res, next) {
       // const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
       //       "time" = '${getTimeAnchor.data.data}'
       //       WHERE tablekey='tblBA';`);
+
+      //
 
       await sqlkp.execute(`
       SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
@@ -108,11 +115,13 @@ router.post("/", async function (req, res, next) {
 // Pull DataDariServer
 router.get("/", async function (req, res, next) {
   try {
+    // Mengambil Data (Pull Data)
     const pullData = await axios.get(
       `${conf.baseURL}/kartu-pasien/ba/pull/${conf.kodeCabang}`
     );
-    console.log(pullData.data);
+
     if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
       await sqlkp.execute(`
             SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
             INSERT INTO "#tmpBA"
@@ -131,6 +140,7 @@ router.get("/", async function (req, res, next) {
                           Source.Exported,Source.TglAuto);
           `);
 
+      // Menandai agar tidak di push kembali
       await sqlkp.execute(`
           SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
           INSERT INTO "#tmpBA"
@@ -141,6 +151,8 @@ router.get("/", async function (req, res, next) {
               WHEN MATCHED THEN
                    UPDATE SET Target.flagPush = 1;`);
 
+      // Memberikan flag di row server kalau sudah di pull data tsb
+
       const pullFlag = await axios.post(
         `${conf.baseURL}/kartu-pasien/ba/pull/${conf.kodeCabang}`,
         { data: pullData.data.data }
@@ -149,7 +161,7 @@ router.get("/", async function (req, res, next) {
       res.json({
         success: true,
         status: 200,
-        message: "Belum ada data",
+        message: "Berhasil Pull Data",
         data: pullData.data.data,
       });
     } else {
