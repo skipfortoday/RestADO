@@ -16,6 +16,17 @@ setInterval(function () {
     });
 }, 3000);
 
+setInterval(function () {
+  axios
+    .get("http://localhost:4000/kartu-pasien/perawatan")
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
+
 router.post("/", async function (req, res, next) {
   try {
     // Mengecek Apakah Ada Data Terbaru
