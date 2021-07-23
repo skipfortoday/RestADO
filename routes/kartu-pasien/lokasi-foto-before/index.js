@@ -24,16 +24,16 @@ fire
   });
 
 // Pengecekan apakah ada data baru
-// setInterval(function () {
-//   axios
-//     .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.post("/", async function (req, res, next) {
   try {

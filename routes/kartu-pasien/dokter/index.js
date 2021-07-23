@@ -22,16 +22,16 @@ fire
       });
   });
 
-// setInterval(function () {
-//   axios
-//     .post(`${conf.appURL}/kartu-pasien/dokter`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/dokter`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
