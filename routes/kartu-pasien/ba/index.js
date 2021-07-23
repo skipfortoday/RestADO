@@ -4,6 +4,23 @@ const moment = require("moment");
 const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 const conf = require("../../../config/main");
+const fire = require("../../../config/firebase");
+
+fire
+  .database()
+  .ref("/kartu-pasien/tblBA")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblBA : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/ba`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
 // setInterval(function () {
 //   axios
@@ -15,26 +32,6 @@ const conf = require("../../../config/main");
 //       console.log(error);
 //     });
 // }, 3000);
-
-// setInterval(function () {
-//   axios
-//     .get(`${conf.appURL}/kartu-pasien/ba`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
-
-// firebase
-//   .database()
-//   .ref("/datapasien")
-//   .on("value", (snapshot) => {
-//     const data = snapshot.val();
-//     console.log(data);
-//     props.dispatch(getBA());
-//   });
 
 // Push Data Ke Server
 router.post("/", async function (req, res, next) {
@@ -165,7 +162,7 @@ router.get("/", async function (req, res, next) {
         data: pullData.data.data,
       });
     } else {
-      res.json({
+      res.status(204).json({
         success: true,
         status: 200,
         message: "Belum ada data",

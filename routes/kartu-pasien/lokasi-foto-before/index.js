@@ -4,21 +4,29 @@ const moment = require("moment");
 const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 const conf = require("../../../config/main");
+const fire = require("../../../config/firebase");
 
+// Listen apakah Ada Brodcast
+fire
+  .database()
+  .ref("/kartu-pasien/tblPerawatanLokasiFotoBefore")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblPerawatanLokasiFotoBefore : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
+
+// Pengecekan apakah ada data baru
 // setInterval(function () {
 //   axios
-//     .get("http://localhost:4000/kartu-pasien/lokasi-foto-before")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
-
-// setInterval(function () {
-//   axios
-//     .post("http://localhost:4000/kartu-pasien/lokasi-foto-before")
+//     .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
 //     .then(function (response) {
 //       console.log(response.data);
 //     })

@@ -4,21 +4,27 @@ const moment = require("moment");
 const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 const conf = require("../../../config/main");
+const fire = require("../../../config/firebase");
+
+fire
+  .database()
+  .ref("/kartu-pasien/tblDokter")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblDokter : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/dokter`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
 // setInterval(function () {
 //   axios
-//     .post("http://localhost:4000/kartu-pasien/dokter")
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
-
-// setInterval(function () {
-//   axios
-//     .get("http://localhost:4000/kartu-pasien/dokter")
+//     .post(`${conf.appURL}/kartu-pasien/dokter`)
 //     .then(function (response) {
 //       console.log(response.data);
 //     })

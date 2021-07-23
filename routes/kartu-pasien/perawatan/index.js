@@ -4,28 +4,36 @@ const moment = require("moment");
 const sqlkp = require("../../../config/sqlkartupasien");
 const router = express.Router();
 const conf = require("../../../config/main");
+const fire = require("../../../config/firebase");
 
-setInterval(function () {
-  axios
-    .post("http://localhost:4000/kartu-pasien/perawatan")
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// Listen Apakah ada Brodcast Dari Server
+fire
+  .database()
+  .ref("/kartu-pasien/tblPerawatan")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblPerawatan : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/perawatan`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
-setInterval(function () {
-  axios
-    .get("http://localhost:4000/kartu-pasien/perawatan")
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// pengecekan apakah ada Data Baru
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/perawatan`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.post("/", async function (req, res, next) {
   try {

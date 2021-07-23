@@ -4,6 +4,6 @@ const conf = {
   kodeCabang: "PB1",
   dbKartuPasien: "KartuPasien-PB1",
   dbTcard: "Tcard",
-  ipDatabase: "localhost",
+  ipDatabase: "192.168.0.1",
 };
 module.exports = conf;
