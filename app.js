@@ -14,6 +14,8 @@ var lokasiFotoBefore = require("./routes/kartu-pasien/lokasi-foto-before");
 var lokasiFotoAfter = require("./routes/kartu-pasien/lokasi-foto-after");
 var perawatan = require("./routes/kartu-pasien/perawatan");
 var app = express();
+const io = require("socket.io-client");
+const socket = io("http://localhost:3000");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -36,6 +38,13 @@ app.use("/kartu-pasien/perawatan", perawatan);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
+});
+
+socket.on("connect", () => {
+  console.log("test");
+  socket.on("some event", function (msg) {
+    console.log(msg);
+  });
 });
 
 // error handler

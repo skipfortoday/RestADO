@@ -5,26 +5,26 @@ var fire = require("../../config/firebase");
 var conf = require("../../config/main");
 var ref = fire.database().ref(".info/connected");
 
-ref.on("value", (snapshot) => {
-  const data = snapshot.val();
-  data
-    ? axios
-        .post(`${conf.appURL}/master`)
-        .then(function (response) {
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-        })
-    : axios
-        .put(`${conf.appURL}/master`)
-        .then(function (response) {
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-});
+// ref.on("value", (snapshot) => {
+//   const data = snapshot.val();
+//   data
+//     ? axios
+//         .post(`${conf.appURL}/master`)
+//         .then(function (response) {
+//           console.log(response.data);
+//         })
+//         .catch(function (error) {
+//           console.log(error);
+//         })
+//     : axios
+//         .put(`${conf.appURL}/master`)
+//         .then(function (response) {
+//           console.log(response.data);
+//         })
+//         .catch(function (error) {
+//           console.log(error);
+//         });
+// });
 
 router.post("/", async function (req, res, next) {
   try {
