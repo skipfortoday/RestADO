@@ -6,25 +6,63 @@ const router = express.Router();
 const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
-// fire
-//   .database()
-//   .ref("/kartu-pasien/tblBA")
-//   .on("value", (snapshot) => {
-//     const data = snapshot.val();
-//     console.log("tblBA : ", data);
-//     axios
-//       .get(`${conf.appURL}/kartu-pasien/ba`)
-//       .then(function (response) {
-//         console.log(response.data);
-//       })
-//       .catch(function (error) {
-//         console.log(error);
-//       });
-//   });
+fire
+  .database()
+  .ref("/kartu-pasien/tblBA")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblBA : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/ba`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
+
+fire
+  .database()
+  .ref("/kartu-pasien/tblBA")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblBA : ", data);
+    axios
+      .patch(`${conf.appURL}/kartu-pasien/ba`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
+
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/ba`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
+
+setInterval(function () {
+  axios
+    .put(`${conf.appURL}/kartu-pasien/ba`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 // setInterval(function () {
 //   axios
-//     .post(`${conf.appURL}/kartu-pasien/ba`)
+//     .patch(`${conf.appURL}/kartu-pasien/ba`)
 //     .then(function (response) {
 //       console.log(response.data);
 //     })
@@ -67,18 +105,6 @@ router.post("/", async function (req, res, next) {
         { data: dataFinal }
       );
 
-      // //Mendapatkan Waktu Data Terakhir Update
-      // const getTimeAnchor = await axios.get(
-      //   "http://localhost:3000/api/kartu-pasien/ba/waktu"
-      // );
-
-      // //Update Waktu Acuan ke DB Client
-      // const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
-      //       "time" = '${getTimeAnchor.data.data}'
-      //       WHERE tablekey='tblBA';`);
-
-      //
-
       await sqlkp.execute(`
       SELECT Top 0 * INTO "#tmpBA" FROM "tblBA";
       INSERT INTO "#tmpBA"
@@ -109,7 +135,85 @@ router.post("/", async function (req, res, next) {
   }
 });
 
-// Pull DataDariServer
+// Push Data Ke Server
+router.put("/", async function (req, res, next) {
+  try {
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+    SELECT TOP 1 flagIDBA FROM flagBA WHERE flagDelete = 1;`);
+
+    if (checkData[0]) {
+      let key = checkData[0].flagIDBA;
+      const pushData = await axios.put(
+        `${conf.baseURL}/kartu-pasien/ba/push/${conf.kodeCabang}`,
+        { data: key }
+      );
+
+      const deleteFlag = await sqlkp.execute(
+        `DELETE FROM flagBA WHERE flagIDBA = '${key}'`
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Push Data",
+        data: key,
+      });
+    } else {
+      res.status(204).json({
+        success: false,
+        status: 204,
+        message: "Belum ada data untuk di Push",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Pull Data Dari Server
+router.patch("/", async function (req, res, next) {
+  try {
+    // Mengambil Data (Pull Data)
+    const pullData = await axios.patch(
+      `${conf.baseURL}/kartu-pasien/ba/pull/${conf.kodeCabang}`
+    );
+
+    if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
+      await sqlkp.execute(
+        `DELETE FROM tblBA WHERE IDBA = '${pullData.data.data}';
+         DELETE FROM flagBA WHERE flagIDBA = '${pullData.data.data}';`
+      );
+
+      const pullFlag = await axios.put(
+        `${conf.baseURL}/kartu-pasien/ba/pull/${conf.kodeCabang}`,
+        { data: pullData.data.data }
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Pull Data",
+        data: pullData.data.data,
+      });
+    } else {
+      res.status(204).json({
+        success: true,
+        status: 200,
+        message: "Belum ada data",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Pull Data Dari Server
 router.get("/", async function (req, res, next) {
   try {
     // Mengambil Data (Pull Data)

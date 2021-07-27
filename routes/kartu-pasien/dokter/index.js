@@ -6,32 +6,32 @@ const router = express.Router();
 const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
-// fire
-//   .database()
-//   .ref("/kartu-pasien/tblDokter")
-//   .on("value", (snapshot) => {
-//     const data = snapshot.val();
-//     console.log("tblDokter : ", data);
-//     axios
-//       .get(`${conf.appURL}/kartu-pasien/dokter`)
-//       .then(function (response) {
-//         console.log(response.data);
-//       })
-//       .catch(function (error) {
-//         console.log(error);
-//       });
-//   });
+fire
+  .database()
+  .ref("/kartu-pasien/tblDokter")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblDokter : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/dokter`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
-// setInterval(function () {
-//   axios
-//     .post(`${conf.appURL}/kartu-pasien/dokter`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/dokter`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.post("/", async function (req, res, next) {
   try {

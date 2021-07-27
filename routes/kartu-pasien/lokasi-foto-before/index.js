@@ -7,33 +7,33 @@ const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
 // Listen apakah Ada Brodcast
-// fire
-//   .database()
-//   .ref("/kartu-pasien/tblPerawatanLokasiFotoBefore")
-//   .on("value", (snapshot) => {
-//     const data = snapshot.val();
-//     console.log("tblPerawatanLokasiFotoBefore : ", data);
-//     axios
-//       .get(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
-//       .then(function (response) {
-//         console.log(response.data);
-//       })
-//       .catch(function (error) {
-//         console.log(error);
-//       });
-//   });
+fire
+  .database()
+  .ref("/kartu-pasien/tblPerawatanLokasiFotoBefore")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblPerawatanLokasiFotoBefore : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
-// // Pengecekan apakah ada data baru
-// setInterval(function () {
-//   axios
-//     .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+// Pengecekan apakah ada data baru
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
