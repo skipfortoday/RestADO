@@ -6,32 +6,32 @@ const router = express.Router();
 const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
-fire
-  .database()
-  .ref("/kartu-pasien/tblDataPasien")
-  .on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("tblDataPasien : ", data);
-    axios
-      .get(`${conf.appURL}/kartu-pasien/data-pasien`)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
+// fire
+//   .database()
+//   .ref("/kartu-pasien/tblDataPasien")
+//   .on("value", (snapshot) => {
+//     const data = snapshot.val();
+//     console.log("tblDataPasien : ", data);
+//     axios
+//       .get(`${conf.appURL}/kartu-pasien/data-pasien`)
+//       .then(function (response) {
+//         console.log(response.data);
+//       })
+//       .catch(function (error) {
+//         console.log(error);
+//       });
+//   });
 
-setInterval(function () {
-  axios
-    .post(`${conf.appURL}/kartu-pasien/data-pasien`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/data-pasien`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
@@ -534,4 +534,81 @@ router.get("/", async function (req, res, next) {
   }
 });
 
+// Push Data Ke Server
+router.put("/", async function (req, res, next) {
+  try {
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+    SELECT TOP 1 flagNKP FROM flagDataPasien WHERE flagDelete = 1;`);
+
+    if (checkData[0]) {
+      let key = checkData[0].flagNKP;
+      const pushData = await axios.put(
+        `${conf.baseURL}/kartu-pasien/data-pasien/push/${conf.kodeCabang}`,
+        { data: key }
+      );
+
+      const deleteFlag = await sqlkp.execute(
+        `DELETE FROM flagDataPasien WHERE flagNKP = '${key}'`
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Push Data",
+        data: key,
+      });
+    } else {
+      res.status(204).json({
+        success: false,
+        status: 204,
+        message: "Belum ada data untuk di Push",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Pull Data Dari Server
+router.patch("/", async function (req, res, next) {
+  try {
+    // Mengambil Data (Pull Data)
+    const pullData = await axios.patch(
+      `${conf.baseURL}/kartu-pasien/data-pasien/pull/${conf.kodeCabang}`
+    );
+
+    if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
+      await sqlkp.execute(
+        `DELETE FROM tblDataPasien WHERE NKP = '${pullData.data.data}';
+         DELETE FROM flagDataPasien WHERE flagNKP = '${pullData.data.data}';`
+      );
+
+      const pullFlag = await axios.put(
+        `${conf.baseURL}/kartu-pasien/data-pasien/pull/${conf.kodeCabang}`,
+        { data: pullData.data.data }
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Pull Data",
+        data: pullData.data.data,
+      });
+    } else {
+      res.status(204).json({
+        success: true,
+        status: 200,
+        message: "Belum ada data",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
 module.exports = router;

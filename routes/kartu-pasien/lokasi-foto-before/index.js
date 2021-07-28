@@ -7,33 +7,33 @@ const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
 // Listen apakah Ada Brodcast
-fire
-  .database()
-  .ref("/kartu-pasien/tblPerawatanLokasiFotoBefore")
-  .on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("tblPerawatanLokasiFotoBefore : ", data);
-    axios
-      .get(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
+// fire
+//   .database()
+//   .ref("/kartu-pasien/tblPerawatanLokasiFotoBefore")
+//   .on("value", (snapshot) => {
+//     const data = snapshot.val();
+//     console.log("tblPerawatanLokasiFotoBefore : ", data);
+//     axios
+//       .get(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+//       .then(function (response) {
+//         console.log(response.data);
+//       })
+//       .catch(function (error) {
+//         console.log(error);
+//       });
+//   });
 
 // Pengecekan apakah ada data baru
-setInterval(function () {
-  axios
-    .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/lokasi-foto-before`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
@@ -211,5 +211,81 @@ router.get("/", async function (req, res, next) {
     console.error(error);
   }
 });
+// Push Data Ke Server
+router.put("/", async function (req, res, next) {
+  try {
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+    SELECT TOP 1 flagNoAuto FROM flagPerawatanLokasiFotoBefore WHERE flagDelete = 1;`);
 
+    if (checkData[0]) {
+      let key = checkData[0].flagIDDokter;
+      const pushData = await axios.put(
+        `${conf.baseURL}/kartu-pasien/lokasi-foto-before/push/${conf.kodeCabang}`,
+        { data: key }
+      );
+
+      const deleteFlag = await sqlkp.execute(
+        `DELETE FROM flagPerawatanLokasiFotoBefore WHERE flagNoAuto = '${key}'`
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Push Data",
+        data: key,
+      });
+    } else {
+      res.status(204).json({
+        success: false,
+        status: 204,
+        message: "Belum ada data untuk di Push",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Pull Data Dari Server
+router.patch("/", async function (req, res, next) {
+  try {
+    // Mengambil Data (Pull Data)
+    const pullData = await axios.patch(
+      `${conf.baseURL}/kartu-pasien/lokasi-foto-before/pull/${conf.kodeCabang}`
+    );
+
+    if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
+      await sqlkp.execute(
+        `DELETE FROM tblPerawatanLokasiFotoBefore WHERE NoAuto = '${pullData.data.data}';
+         DELETE FROM flagPerawatanLokasiFotoBefore WHERE flagNoAuto = '${pullData.data.data}';`
+      );
+
+      const pullFlag = await axios.put(
+        `${conf.baseURL}/kartu-pasien/lokasi-foto-before/pull/${conf.kodeCabang}`,
+        { data: pullData.data.data }
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Pull Data",
+        data: pullData.data.data,
+      });
+    } else {
+      res.status(204).json({
+        success: true,
+        status: 200,
+        message: "Belum ada data",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
 module.exports = router;

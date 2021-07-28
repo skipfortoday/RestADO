@@ -7,33 +7,33 @@ const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
 // Listen Apakah ada Brodcast Dari Server
-fire
-  .database()
-  .ref("/kartu-pasien/tblPerawatan")
-  .on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("tblPerawatan : ", data);
-    axios
-      .get(`${conf.appURL}/kartu-pasien/perawatan`)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
+// fire
+//   .database()
+//   .ref("/kartu-pasien/tblPerawatan")
+//   .on("value", (snapshot) => {
+//     const data = snapshot.val();
+//     console.log("tblPerawatan : ", data);
+//     axios
+//       .get(`${conf.appURL}/kartu-pasien/perawatan`)
+//       .then(function (response) {
+//         console.log(response.data);
+//       })
+//       .catch(function (error) {
+//         console.log(error);
+//       });
+//   });
 
 // pengecekan apakah ada Data Baru
-setInterval(function () {
-  axios
-    .post(`${conf.appURL}/kartu-pasien/perawatan`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/perawatan`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
@@ -449,6 +449,84 @@ router.get("/", async function (req, res, next) {
       res.status(204).json({
         success: true,
         status: 204,
+        message: "Belum ada data",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Push Data Ke Server
+router.put("/", async function (req, res, next) {
+  try {
+    // Mengecek Apakah Ada Data Terbaru
+    const checkData = await sqlkp.query(`
+    SELECT TOP 1 flagNoAuto FROM flagPerawatan WHERE flagDelete = 1;`);
+
+    if (checkData[0]) {
+      let key = checkData[0].flagNoAuto;
+      const pushData = await axios.put(
+        `${conf.baseURL}/kartu-pasien/perawatan/push/${conf.kodeCabang}`,
+        { data: key }
+      );
+
+      const deleteFlag = await sqlkp.execute(
+        `DELETE FROM flagPerawatan WHERE flagNoAuto = '${key}'`
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Push Data",
+        data: key,
+      });
+    } else {
+      res.status(204).json({
+        success: false,
+        status: 204,
+        message: "Belum ada data untuk di Push",
+        data: false,
+      });
+    }
+  } catch (error) {
+    res.json(error);
+    console.error(error);
+  }
+});
+
+// Pull Data Dari Server
+router.patch("/", async function (req, res, next) {
+  try {
+    // Mengambil Data (Pull Data)
+    const pullData = await axios.patch(
+      `${conf.baseURL}/kartu-pasien/perawatan/pull/${conf.kodeCabang}`
+    );
+
+    if (pullData.data.data) {
+      // Merge Data yanag sudah di pull
+      await sqlkp.execute(
+        `DELETE FROM tblPerawatan WHERE NoAuto = '${pullData.data.data}';
+         DELETE FROM flagPerawatan WHERE flagNoAuto = '${pullData.data.data}';`
+      );
+
+      const pullFlag = await axios.put(
+        `${conf.baseURL}/kartu-pasien/perawatan/pull/${conf.kodeCabang}`,
+        { data: pullData.data.data }
+      );
+
+      res.json({
+        success: true,
+        status: 200,
+        message: "Berhasil Pull Data",
+        data: pullData.data.data,
+      });
+    } else {
+      res.status(204).json({
+        success: true,
+        status: 200,
         message: "Belum ada data",
         data: false,
       });

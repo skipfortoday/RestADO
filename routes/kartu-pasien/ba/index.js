@@ -6,59 +6,59 @@ const router = express.Router();
 const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
-fire
-  .database()
-  .ref("/kartu-pasien/tblBA")
-  .on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("tblBA : ", data);
-    axios
-      .get(`${conf.appURL}/kartu-pasien/ba`)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
+// fire
+//   .database()
+//   .ref("/kartu-pasien/tblBA")
+//   .on("value", (snapshot) => {
+//     const data = snapshot.val();
+//     console.log("tblBA : ", data);
+//     axios
+//       .get(`${conf.appURL}/kartu-pasien/ba`)
+//       .then(function (response) {
+//         console.log(response.data);
+//       })
+//       .catch(function (error) {
+//         console.log(error);
+//       });
+//   });
 
-fire
-  .database()
-  .ref("/kartu-pasien/tblBA")
-  .on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("tblBA : ", data);
-    axios
-      .patch(`${conf.appURL}/kartu-pasien/ba`)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
+// fire
+//   .database()
+//   .ref("/kartu-pasien/tblBA")
+//   .on("value", (snapshot) => {
+//     const data = snapshot.val();
+//     console.log("tblBA : ", data);
+//     axios
+//       .patch(`${conf.appURL}/kartu-pasien/ba`)
+//       .then(function (response) {
+//         console.log(response.data);
+//       })
+//       .catch(function (error) {
+//         console.log(error);
+//       });
+//   });
 
-setInterval(function () {
-  axios
-    .post(`${conf.appURL}/kartu-pasien/ba`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .post(`${conf.appURL}/kartu-pasien/ba`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
-setInterval(function () {
-  axios
-    .put(`${conf.appURL}/kartu-pasien/ba`)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-}, 3000);
+// setInterval(function () {
+//   axios
+//     .put(`${conf.appURL}/kartu-pasien/ba`)
+//     .then(function (response) {
+//       console.log(response.data);
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// }, 3000);
 
 // setInterval(function () {
 //   axios
