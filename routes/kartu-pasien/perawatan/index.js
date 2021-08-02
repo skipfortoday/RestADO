@@ -7,33 +7,60 @@ const conf = require("../../../config/main");
 const fire = require("../../../config/firebase");
 
 // Listen Apakah ada Brodcast Dari Server
-// fire
-//   .database()
-//   .ref("/kartu-pasien/tblPerawatan")
-//   .on("value", (snapshot) => {
-//     const data = snapshot.val();
-//     console.log("tblPerawatan : ", data);
-//     axios
-//       .get(`${conf.appURL}/kartu-pasien/perawatan`)
-//       .then(function (response) {
-//         console.log(response.data);
-//       })
-//       .catch(function (error) {
-//         console.log(error);
-//       });
-//   });
+fire
+  .database()
+  .ref("/kartu-pasien/tblPerawatan")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblPerawatan : ", data);
+    axios
+      .get(`${conf.appURL}/kartu-pasien/perawatan`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
+
+fire
+  .database()
+  .ref("/kartu-pasien/tblPerawatan")
+  .on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("tblPerawatan : ", data);
+    axios
+      .patch(`${conf.appURL}/kartu-pasien/perawatan`)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
 
 // pengecekan apakah ada Data Baru
-// setInterval(function () {
-//   axios
-//     .post(`${conf.appURL}/kartu-pasien/perawatan`)
-//     .then(function (response) {
-//       console.log(response.data);
-//     })
-//     .catch(function (error) {
-//       console.log(error);
-//     });
-// }, 3000);
+setInterval(function () {
+  axios
+    .post(`${conf.appURL}/kartu-pasien/perawatan`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
+
+setInterval(function () {
+  axios
+    .put(`${conf.appURL}/kartu-pasien/perawatan`)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}, 3000);
 
 router.post("/", async function (req, res, next) {
   try {
