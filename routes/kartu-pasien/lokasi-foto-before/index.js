@@ -244,7 +244,6 @@ router.put("/", async function (req, res, next) {
     // Mengecek Apakah Ada Data Terbaru
     const checkData = await sqlkp.query(`
     SELECT TOP 1 flagNoAuto FROM flagPerawatanLokasiFotoBefore WHERE flagDelete = 1;`);
-    console.log(checkData);
     if (checkData[0]) {
       let key = checkData[0].flagNoAuto;
       const pushData = await axios.put(

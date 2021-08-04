@@ -15,7 +15,8 @@ var lokasiFotoAfter = require("./routes/kartu-pasien/lokasi-foto-after");
 var perawatan = require("./routes/kartu-pasien/perawatan");
 var app = express();
 const io = require("socket.io-client");
-const socket = io("http://localhost:3000");
+const conf = require("./config/main");
+const socket = io(`${conf.socketURL}`);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));

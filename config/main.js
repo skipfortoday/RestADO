@@ -1,6 +1,7 @@
 const conf = {
   appURL: "http://localhost:4000",
   baseURL: "http://localhost:3000/api",
+  socketURL: "http://localhost:3000",
   kodeCabang: "PB1",
   dbKartuPasien: "KartuPasien-PB1",
   dbTcard: "Tcard",
