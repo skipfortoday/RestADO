@@ -205,16 +205,6 @@ router.post("/", async function (req, res, next) {
         { data: dataFinal }
       );
 
-      // //Mendapatkan Waktu Data Terakhir Update
-      // const getTimeAnchor = await axios.get(
-      //   "http://localhost:3000/api/kartu-pasien/data-pasien/waktu"
-      // );
-
-      // //Update Waktu Acuan ke DB Client
-      // const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
-      //       "time" = '${getTimeAnchor.data.data}'
-      //       WHERE tablekey='tblDataPasien';`);
-
       await sqlkp.execute(`
       SELECT Top 0 * INTO "#tmpDataPasien" FROM "tblDataPasien";
       INSERT INTO "#tmpDataPasien"

@@ -238,16 +238,6 @@ router.post("/", async function (req, res, next) {
           WHEN MATCHED THEN
                UPDATE SET Target.flagPush = 1;`);
 
-      // //Mendapatkan Waktu Data Terakhir Update
-      // const getTimeAnchor = await axios.get(
-      //   "http://localhost:3000/api/kartu-pasien/perawatan/waktu"
-      // );
-
-      // //Update Waktu Acuan ke DB Client
-      // const updateTime = await sqlkp.execute(`UPDATE "timeAnchor" set
-      //       "time" = '${getTimeAnchor.data.data}'
-      //       WHERE tablekey='tblPerawatan';`);
-
       res.json({
         success: true,
         status: 200,
