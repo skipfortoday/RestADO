@@ -80,12 +80,12 @@ router.post("/", async function (req, res, next) {
           ${
             items.Keterangan == null
               ? null
-              : `'${items.Keterangan.replace("'", "''")}'`
+              : `'${items.Keterangan.replace(/'/g, "''")}'`
           },
           ${
             items.UserEntry == null
               ? null
-              : `'${items.UserEntry.replace("'", "''")}'`
+              : `'${items.UserEntry.replace(/'/g, "''")}'`
           },
           ${
             items.LoginComp == null
@@ -110,7 +110,7 @@ router.post("/", async function (req, res, next) {
           ${
             items.LokasiFotoBefore == null
               ? null
-              : `'${items.LokasiFotoBefore.replace("'", "''")}'`
+              : `'${items.LokasiFotoBefore.replace(/'/g, "''")}'`
           },
           '${moment(items.TglAuto).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });

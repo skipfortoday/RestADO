@@ -75,7 +75,7 @@ router.post("/", async function (req, res, next) {
                   ${
                     items.NamaBA == null
                       ? null
-                      : `'${items.NamaBA.replace("'", "''")}'`
+                      : `'${items.NamaBA.replace(/'/g, "''")}'`
                   },
                   ${items.Status == null ? null : `'${items.Status}'`},
                   ${items.Exported == null ? null : `'${items.Exported}'`},

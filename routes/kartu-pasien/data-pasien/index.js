@@ -77,25 +77,25 @@ router.post("/", async function (req, res, next) {
               ? null
               : `'${moment(items.TglAwalDaftar).format("YYYY-MM-DD HH:mm:ss")}'`
           },
-          ${items.Nama == null ? null : `'${items.Nama.replace("'", "''")}'`},
+          ${items.Nama == null ? null : `'${items.Nama.replace(/'/g, "''")}'`},
           ${
-            items.Alamat == null ? null : `'${items.Alamat.replace("'", "''")}'`
+            items.Alamat == null ? null : `'${items.Alamat.replace(/'/g, "''")}'`
           },
-          ${items.TelpRumah == null ? null : `'${items.TelpRumah}'`},
-          ${items.HP == null ? null : `'${items.HP}'`},
-          ${items.Fax == null ? null : `'${items.Fax}'`},
+          ${items.TelpRumah == null ? null : `'${items.TelpRumah.replace(/'/g, "''")}'`},
+          ${items.HP == null ? null : `'${items.HP.replace(/'/g, "''")}'`},
+          ${items.Fax == null ? null : `'${items.Fax.replace(/'/g, "''")}'`},
           ${
             items.TglLahir == null
               ? null
               : `'${moment(items.TglLahir).format("YYYY-MM-DD HH:mm:ss")}'`
           },
-          ${items.NoDist == null ? null : `'${items.NoDist}'`}, 
-          ${items.NoSponsor == null ? null : `'${items.NoSponsor}'`},
-          ${items.Status == null ? null : `'${items.Status}'`},
+          ${items.NoDist == null ? null : `'${items.NoDist.replace(/'/g, "''")}'`}, 
+          ${items.NoSponsor == null ? null : `'${items.NoSponsor.replace(/'/g, "''")}'`},
+          ${items.Status == null ? null : `'${items.Status.replace(/'/g, "''")}'`},
           ${
             items.Keterangan == null
               ? null
-              : `'${items.Keterangan.replace("'", "''")}'`
+              : `'${items.Keterangan.replace(/'/g, "''")}'`
           },
           ${
             items.TglActivitas == null
@@ -149,35 +149,35 @@ router.post("/", async function (req, res, next) {
           ${
             items.LokasiFoto == null
               ? null
-              : `'${items.LokasiFoto.replace("'", "''")}'`
+              : `'${items.LokasiFoto.replace(/'/g, "''")}'`
           },
           ${items.NoKTP == null ? null : `'${items.NoKTP}'`},
           ${
             items.NamaKTP == null
               ? null
-              : `'${items.NamaKTP.replace("'", "''")}'`
+              : `'${items.NamaKTP.replace(/'/g, "''")}'`
           },
           ${
             items.TempatLahir == null
               ? null
-              : `'${items.TempatLahir.replace("'", "''")}'`
+              : `'${items.TempatLahir.replace(/'/g, "''")}'`
           },
           ${
             items.AlamatKTP == null
               ? null
-              : `'${items.AlamatKTP.replace("'", "''")}'`
+              : `'${items.AlamatKTP.replace(/'/g, "''")}'`
           },
           ${items.TelpKTP == null ? null : `'${items.TelpKTP}'`},
-          ${items.Kota == null ? null : `'${items.Kota.replace("'", "''")}'`},
+          ${items.Kota == null ? null : `'${items.Kota.replace(/'/g, "''")}'`},
           ${
             items.KotaKTP == null
               ? null
-              : `'${items.KotaKTP.replace("'", "''")}'`
+              : `'${items.KotaKTP.replace(/'/g, "''")}'`
           },
           ${
             items.KotaSMS == null
               ? null
-              : `'${items.KotaSMS.replace("'", "''")}'`
+              : `'${items.KotaSMS.replace(/'/g, "''")}'`
           },
           ${items.StatusLtPack == null ? null : `'${items.StatusLtPack}'`},
           ${items.NoDistLtPack == null ? null : `'${items.NoDistLtPack}'`},
@@ -193,12 +193,14 @@ router.post("/", async function (req, res, next) {
           '${moment(moment(items.TglAuto)).format("YYYY-MM-DD HH:mm:ss")}'),`;
       });
 
+	
+
       // Data Dipotong , Belakang
       let dataCut = dataArray.substring(0, dataArray.trim().length - 1);
 
       // Menghilangkan Spaci & Whitespace Agar Dikirim Lebih Ringkas
       let dataFinal = dataCut.replace(/\s+/g, " ").trim();
-
+	
       //Push Data Ke API untuk di simpan dan di MERGE
       const pushData = await axios.post(
         `${conf.baseURL}/kartu-pasien/data-pasien/push/${conf.kodeCabang}`,

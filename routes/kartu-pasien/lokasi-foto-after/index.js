@@ -81,12 +81,12 @@ router.post("/", async function (req, res, next) {
           ${
             items.Keterangan == null
               ? null
-              : `'${items.Keterangan.replace("'", "''")}'`
+              : `'${items.Keterangan.replace(/'/g, "''")}'`
           },
           ${
             items.UserEntry == null
               ? null
-              : `'${items.UserEntry.replace("'", "''")}'`
+              : `'${items.UserEntry.replace(/'/g, "''")}'`
           },
           ${
             items.LoginComp == null

@@ -75,7 +75,7 @@ router.post("/", async function (req, res, next) {
                   ${
                     items.NamaDokter == null
                       ? null
-                      : `'${items.NamaDokter.replace("'", "''")}'`
+                      : `'${items.NamaDokter.replace(/'/g, "''")}'`
                   },
                   ${items.Status == null ? null : `'${items.Status}'`},
                   ${items.Exported == null ? null : `'${items.Exported}'`},

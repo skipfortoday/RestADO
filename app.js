@@ -16,7 +16,12 @@ var perawatan = require("./routes/kartu-pasien/perawatan");
 var app = express();
 const io = require("socket.io-client");
 const conf = require("./config/main");
-const socket = io(`${conf.socketURL}`);
+const os = require("os")
+const socket = io(`${conf.socketURL}`, {
+ extraHeaders: {
+		"clientName" : os.hostname()
+	}
+} );
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));

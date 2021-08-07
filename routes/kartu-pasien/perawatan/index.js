@@ -83,18 +83,18 @@ router.post("/", async function (req, res, next) {
                ? null
                : `'${moment(items.TglTreatment).format("YYYY-MM-DD HH:mm:ss")}'`
            },
-           ${items.Nama == null ? null : `'${items.Nama.replace("'", "''")}'`},
+           ${items.Nama == null ? null : `'${items.Nama.replace(/'/g, "''")}'`},
            ${
              items.Alamat == null
                ? null
-               : `'${items.Alamat.replace("'", "''")}'`
+               : `'${items.Alamat.replace(/'/g, "''")}'`
            },
            ${items.TelpRumah == null ? null : `'${items.TelpRumah}'`},
            ${items.HP == null ? null : `'${items.HP}'`},
            ${
              items.Anamnesa == null
                ? null
-               : `'${items.Anamnesa.replace("'", "''")}'`
+               : `'${items.Anamnesa.replace(/'/g, "''")}'`
            },
            ${items.Pagi == null ? null : `'${items.Pagi.replace("'", "''")}'`},
            ${items.Sore == null ? null : `'${items.Sore.replace("'", "''")}'`},
@@ -104,27 +104,27 @@ router.post("/", async function (req, res, next) {
            ${
              items.Terapy == null
                ? null
-               : `'${items.Terapy.replace("'", "''")}'`
+               : `'${items.Terapy.replace(/'/g, "''")}'`
            },
            ${
              items.NamaDokterKonsul == null
                ? null
-               : `'${items.NamaDokterKonsul.replace("'", "''")}'`
+               : `'${items.NamaDokterKonsul.replace(/'/g, "''")}'`
            },
            ${
              items.NamaDokter == null
                ? null
-               : `'${items.NamaDokter.replace("'", "''")}'`
+               : `'${items.NamaDokter.replace(/'/g, "''")}'`
            },
            ${
              items.NamaBA == null
                ? null
-               : `'${items.NamaBA.replace("'", "''")}'`
+               : `'${items.NamaBA.replace(/'/g, "''")}'`
            },
            ${
              items.Status == null
                ? null
-               : `'${items.Status.replace("'", "''")}'`
+               : `'${items.Status.replace(/'/g, "''")}'`
            },
            ${
              items.TglActivitas == null
@@ -139,12 +139,12 @@ router.post("/", async function (req, res, next) {
            ${
              items.Keterangan == null
                ? null
-               : `'${items.Keterangan.replace("'", "''")}'`
+               : `'${items.Keterangan.replace(/'/g, "''")}'`
            }, 
            ${
              items.UserEntry == null
                ? null
-               : `'${items.UserEntry.replace("'", "''")}'`
+               : `'${items.UserEntry.replace(/'/g, "''")}'`
            },
            ${
              items.LoginComp == null
@@ -172,7 +172,7 @@ router.post("/", async function (req, res, next) {
            ${
              items.CallKet == null
                ? null
-               : `'${items.CallKet.replace("'", "''")}'`
+               : `'${items.CallKet.replace(/'/g, "''")}'`
            },
            ${
              items.CallPasienResep == null ? null : `'${items.CallPasienResep}'`
